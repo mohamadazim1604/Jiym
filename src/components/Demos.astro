@@ -1,0 +1,148 @@
+---
+import SplitText from './SplitText.astro';
+import DemoTrace from './DemoTrace.astro';
+import BookingDemo from './BookingDemo.astro';
+
+const demos = [
+  {
+    id: 'demo-trace',
+    code: 'TRC',
+    title: 'Stock and traceability',
+    blurb:
+      'Change the quantity and watch the FIFO window move. Receipt order decides which lots are drawn, and a single non-compliant lot inside that window changes the status of everything produced from it. Run it and the lineage is written underneath.',
+    source: 'C:\\Project Code\\MSNR Trace',
+  },
+  {
+    id: 'demo-booking',
+    code: 'BKG',
+    title: 'Booking and attendance',
+    blurb:
+      'Pick a free slot, set a participant count against room capacity, and confirm. The booking issues a QR token; scanning it records a check-in against that booking, which is what turns attendance into a report rather than an assertion.',
+    source: 'C:\\Project Code\\LGM-Space',
+  },
+];
+---
+
+<section class="section demos" id="demos">
+  <div class="container">
+    <header class="demos__head">
+      <p class="eyebrow m-rise">Live demos</p>
+      <h2 class="h2">
+        <SplitText text="Not screenshots." />
+        <SplitText text="Working software." offset={2} italic />
+      </h2>
+      <p class="lede m-rise">
+        Both rebuilt from the real systems and running in your browser. Nothing is saved and a
+        refresh returns them to the start.
+      </p>
+    </header>
+
+    <div class="demos__list">
+      {
+        demos.map((demo, i) => (
+          <article class="demos__item" id={demo.id}>
+            <header class="demos__item-head m-rise">
+              <div class="demos__label">
+                <span class="index">{String(i + 1).padStart(2, '0')}</span>
+                <span class="demos__code">{demo.code}</span>
+                <h3 class="demos__title">{demo.title}</h3>
+              </div>
+              <p class="demos__blurb">{demo.blurb}</p>
+              <p class="demos__source">
+                <span class="demos__source-k">SOURCE</span>
+                <span class="demos__source-v">{demo.source}</span>
+              </p>
+            </header>
+
+            <div class="demos__frame m-scale">
+              {demo.id === 'demo-trace' ? <DemoTrace /> : <BookingDemo />}
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .demos__head {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    max-width: 46rem;
+  }
+
+  .demos__list {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(3.5rem, 8vw, 6rem);
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+  }
+
+  .demos__item {
+    scroll-margin-top: 6rem;
+  }
+
+  .demos__item-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .demos__label {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .demos__code {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.12em;
+    padding: 0.15rem 0.4rem;
+    border: 1px solid var(--accent-line);
+    border-radius: 3px;
+    color: var(--accent);
+  }
+
+  .demos__title {
+    font-size: var(--step-2);
+  }
+
+  .demos__blurb {
+    font-size: var(--step--1);
+    line-height: 1.65;
+    color: var(--muted);
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+
+  .demos__source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .demos__source-k {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    color: var(--faint);
+  }
+
+  .demos__source-v {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--muted);
+    word-break: break-all;
+  }
+
+  .demos__frame {
+    /* The demos carry their own chrome, so the wrapper only provides lift. */
+    box-shadow: 0 30px 60px -45px rgba(10, 13, 18, 0.5);
+    border-radius: var(--radius);
+  }
+</style>

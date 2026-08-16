@@ -1,0 +1,438 @@
+---
+import { getCollection } from 'astro:content';
+import SplitText from './SplitText.astro';
+
+const entries = (await getCollection('work'))
+  .filter((entry) => entry.data.featured)
+  .sort((a, b) => a.data.order - b.data.order);
+
+/**
+ * Flow diagrams, keyed by the project's domain code. Each is drawn from the
+ * real pipeline in that codebase rather than invented for the page.
+ */
+const flows: Record<string, { nodes: { label: string; sub: string }[]; note: string }> = {
+  TRC: {
+    nodes: [
+      { label: 'Purchase', sub: 'Import · Local · Delivery note' },
+      { label: 'Stock', sub: 'Bins → lots · FIFO or batch' },
+      { label: 'Processing', sub: 'Consume inputs · yield output' },
+      { label: 'Sale', sub: 'Delivery note · receipt' },
+      { label: 'Documents', sub: 'Weighing slip · due diligence' },
+    ],
+    note: 'Compliance status carried on every edge',
+  },
+  BKG: {
+    nodes: [
+      { label: 'Room', sub: 'Capacity · location · dept' },
+      { label: 'Booking', sub: 'Time range · conflict check' },
+      { label: 'Participants', sub: 'Invitation status' },
+      { label: 'QR token', sub: 'Issued per booking' },
+      { label: 'Attendance', sub: 'Check-in time · report' },
+    ],
+    note: 'Scoped by division and department',
+  },
+};
+---
+
+<section class="section systems" id="systems">
+  <div class="container">
+    <header class="systems__head">
+      <p class="eyebrow m-rise">Systems</p>
+      <h2 class="h2">
+        <SplitText text="Two production systems," />
+        <SplitText text="both still running." offset={3} italic />
+      </h2>
+    </header>
+  </div>
+
+  {
+    entries.map((entry, i) => {
+      const flow = flows[entry.data.code] ?? flows.TRC;
+      return (
+        <article class="sys">
+          <div class="container sys__grid">
+            {/* Pinned diagram. Holds still while the argument scrolls past it. */}
+            <div class="sys__media">
+              <figure class="sys__panel ticked">
+                <span class="scanline" aria-hidden="true" />
+
+                <figcaption class="sys__panel-head">
+                  <span class="sys__panel-code">{entry.data.code}</span>
+                  <span class="sys__panel-title">Pipeline</span>
+                </figcaption>
+
+                <svg
+                  class="sys__svg"
+                  viewBox="0 0 380 470"
+                  role="img"
+                  aria-label={`Flow diagram: ${flow.nodes.map((n) => n.label).join(', then ')}`}
+                >
+                  <line class="sys__spine" x1="34" y1="34" x2="34" y2="436" />
+                  <circle class="sys__pulse-glow" cx="34" cy="34" r="11" />
+                  <circle class="sys__pulse" cx="34" cy="34" r="4" />
+
+                  {flow.nodes.map((node, n) => {
+                    const y = 34 + n * 100.5;
+                    return (
+                      <g>
+                        <rect class="sys__node" x="24" y={y - 10} width="20" height="20" rx="4" />
+                        <text class="sys__label" x="66" y={y - 1}>
+                          {node.label}
+                        </text>
+                        <text class="sys__sub" x="66" y={y + 17}>
+                          {node.sub}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
+
+                <div class="sys__panel-foot">
+                  <span class="sys__note">{flow.note}</span>
+                </div>
+              </figure>
+            </div>
+
+            {/* The argument. */}
+            <div class="sys__body">
+              <div class="sys__top">
+                <span class="index">{String(i + 1).padStart(2, '0')}</span>
+                <span class="sys__year">{entry.data.year}</span>
+              </div>
+
+              <h3 class="sys__name">
+                <SplitText text={entry.data.title} />
+              </h3>
+
+              <p class="sys__role">{entry.data.role}</p>
+              <p class="sys__summary">{entry.data.summary}</p>
+
+              <ul class="sys__domains">
+                {entry.data.domains.map((domain) => (
+                  <li class="tag">{domain}</li>
+                ))}
+              </ul>
+
+              {entry.data.awards.length > 0 && (
+                <ul class="sys__awards m-rise">
+                  {entry.data.awards.map((award) => (
+                    <li class="sys__award">{award}</li>
+                  ))}
+                </ul>
+              )}
+
+              <dl class="sys__meta">
+                <div class="sys__meta-row">
+                  <dt class="sys__meta-k">Stack</dt>
+                  <dd class="sys__meta-v">{entry.data.stack.join(' · ')}</dd>
+                </div>
+                {entry.data.repo && (
+                  <div class="sys__meta-row">
+                    <dt class="sys__meta-k">Source</dt>
+                    <dd class="sys__meta-v sys__path">{entry.data.repo}</dd>
+                  </div>
+                )}
+              </dl>
+
+              <div class="sys__actions">
+                <a class="btn" href={`/work/${entry.id}`}>
+                  Read the case study
+                  <span class="btn__arrow" aria-hidden="true">
+                    →
+                  </span>
+                </a>
+                {entry.data.demo && (
+                  <a class="btn btn--ghost" href={`#${entry.data.demo}`}>
+                    Try the demo
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </article>
+      );
+    })
+  }
+</section>
+
+<style>
+  .systems__head {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    max-width: 46rem;
+  }
+
+  .sys {
+    padding-top: clamp(3rem, 8vw, 6rem);
+  }
+
+  .sys__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: start;
+  }
+
+  /* --- diagram panel ------------------------------------------------------ */
+  .sys__panel {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+    background: var(--deep);
+    color: var(--deep-text);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+  }
+
+  .sys__panel-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--deep-line);
+  }
+
+  .sys__panel-code {
+    font-family: var(--font-mono);
+    font-size: var(--step-1);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .sys__panel-title {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--deep-muted);
+  }
+
+  .sys__svg {
+    width: 100%;
+    height: auto;
+    margin-block: 0.5rem;
+  }
+
+  .sys__spine {
+    stroke: var(--deep-line);
+    stroke-width: 1;
+  }
+
+  .sys__node {
+    fill: var(--deep);
+    stroke: var(--accent-2);
+    stroke-width: 1.5;
+  }
+
+  .sys__label {
+    fill: var(--deep-text);
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  .sys__sub {
+    fill: var(--deep-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+
+  .sys__pulse {
+    fill: var(--accent-2);
+  }
+
+  .sys__pulse-glow {
+    fill: var(--accent-2);
+    opacity: 0.2;
+  }
+
+  .sys__panel-foot {
+    padding-top: 1rem;
+    border-top: 1px solid var(--deep-line);
+  }
+
+  .sys__note {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.06em;
+    color: var(--deep-muted);
+  }
+
+  @keyframes sys-travel {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    8%,
+    92% {
+      opacity: 1;
+    }
+    100% {
+      /* 402 user units: the full length of the spine. */
+      transform: translateY(402px);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .sys__pulse,
+    .sys__pulse-glow {
+      animation: sys-travel 6.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sys__pulse,
+    .sys__pulse-glow {
+      display: none;
+    }
+  }
+
+  /* --- body --------------------------------------------------------------- */
+  .sys__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .sys__top {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .sys__year {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--faint);
+  }
+
+  .sys__name {
+    font-size: var(--step-3);
+    max-width: 20ch;
+  }
+
+  .sys__role {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .sys__summary {
+    color: var(--muted);
+    max-width: 54ch;
+    text-wrap: pretty;
+  }
+
+  .sys__domains {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    list-style: none;
+    padding: 0;
+    margin: 0.25rem 0 0;
+  }
+
+  .sys__awards {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .sys__award {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    font-size: var(--step--2);
+    color: var(--ink-2);
+  }
+
+  .sys__award::before {
+    content: '◆';
+    color: var(--accent);
+    font-size: 0.7em;
+    flex: none;
+  }
+
+  .sys__meta {
+    width: 100%;
+    margin: 0.75rem 0 0;
+  }
+
+  .sys__meta-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+    padding-block: 0.7rem;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .sys__meta-row:last-child {
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .sys__meta-k {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .sys__meta-v {
+    margin: 0;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+
+  /* Source path in mono, so it reads as a location rather than as prose. */
+  .sys__path {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--muted);
+    word-break: break-all;
+  }
+
+  .sys__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 0.75rem;
+  }
+
+  @media (min-width: 62rem) {
+    .sys__grid {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+      gap: clamp(2.5rem, 6vw, 5rem);
+    }
+
+    .sys__media {
+      position: sticky;
+      top: 6rem;
+    }
+
+    .sys__meta-row {
+      grid-template-columns: 7rem 1fr;
+      gap: 1.25rem;
+      align-items: baseline;
+    }
+
+    /* Alternate the diagram side so the eye zig-zags down the page. */
+    .sys:nth-child(odd) .sys__media {
+      order: 2;
+    }
+  }
+</style>

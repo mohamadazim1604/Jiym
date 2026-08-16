@@ -1,0 +1,214 @@
+---
+import SplitText from './SplitText.astro';
+import { site } from '../data/site';
+---
+
+<section class="section about" id="about">
+  <div class="container about__grid">
+    {/* Portrait. A real face is a trust signal: someone is deciding whether to
+        hand money to a stranger. Degrades to a designed frame if absent. */}
+    <figure class="about__figure m-wipe ticked">
+      {
+        site.about.portrait ? (
+          <img
+            class="about__img m-zoom"
+            src={site.about.portrait}
+            alt={`${site.name}, ${site.role.toLowerCase()} based in ${site.location}`}
+            width="1000"
+            height="1250"
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <div class="about__placeholder m-zoom">
+            <span class="about__initials">
+              {site.name
+                .split(' ')
+                .map((part) => part[0])
+                .join('')}
+            </span>
+            <span class="about__hint">public/portrait.jpg</span>
+          </div>
+        )
+      }
+      <figcaption class="about__caption">{site.location}</figcaption>
+    </figure>
+
+    <div class="about__text">
+      <p class="eyebrow m-rise">About</p>
+
+      <h2 class="h2 about__heading">
+        <SplitText text="You deal with me," />
+        <SplitText text="start to finish." offset={3} italic />
+      </h2>
+
+      {
+        site.about.body.map((paragraph, i) => (
+          <p class="about__para m-rise" style={`--i:${i}`}>
+            {paragraph}
+          </p>
+        ))
+      }
+
+      <dl class="about__stack">
+        {
+          site.about.stack.map((group, i) => (
+            <div class="about__group m-rise" style={`--i:${i}`}>
+              <dt class="about__group-name">{group.group}</dt>
+              <dd class="about__group-items">
+                {group.items.map((item) => (
+                  <span class="about__chip">{item}</span>
+                ))}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2.5rem, 6vw, 4.5rem);
+    align-items: start;
+  }
+
+  .about__figure {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+    border-radius: var(--radius);
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+  }
+
+  .about__img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    filter: saturate(0.95) contrast(1.02);
+  }
+
+  .about__placeholder {
+    aspect-ratio: 4 / 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    background-image:
+      linear-gradient(to right, var(--line-soft) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--line-soft) 1px, transparent 1px);
+    background-size: 3rem 3rem;
+  }
+
+  .about__initials {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 10vw, 6rem);
+    font-weight: 500;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    opacity: 0.5;
+  }
+
+  .about__hint {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    color: var(--faint);
+  }
+
+  .about__caption {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: 0.4rem 0.8rem;
+    background: var(--surface);
+    border-top: 1px solid var(--line-soft);
+    border-right: 1px solid var(--line-soft);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .about__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .about__heading {
+    margin-bottom: 0.4rem;
+  }
+
+  .about__para {
+    color: var(--ink-2);
+    max-width: 56ch;
+    text-wrap: pretty;
+  }
+
+  .about__stack {
+    margin: 1.25rem 0 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .about__group {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    padding-block: 0.9rem;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .about__group:last-child {
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .about__group-name {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .about__group-items {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .about__chip {
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 3px;
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 56rem) {
+    .about__grid {
+      grid-template-columns: 0.8fr 1fr;
+      gap: clamp(2.5rem, 6vw, 5rem);
+    }
+
+    .about__group {
+      grid-template-columns: 8rem 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+  }
+</style>

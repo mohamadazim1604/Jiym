@@ -1,0 +1,149 @@
+---
+import { site, mailtoHref, whatsappHref } from '../data/site';
+
+const year = new Date().getFullYear();
+
+const links = [
+  { label: 'Systems', href: '/#systems' },
+  { label: 'Demos', href: '/#demos' },
+  { label: 'Capabilities', href: '/#capabilities' },
+  { label: 'Recognition', href: '/#awards' },
+  { label: 'About', href: '/#about' },
+];
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <span class="footer__mark" aria-hidden="true"><span class="footer__pip"></span></span>
+        <p class="footer__name">{site.name}</p>
+        <p class="footer__role">{site.role}</p>
+        <p class="footer__loc">{site.location}</p>
+      </div>
+
+      <nav class="footer__col" aria-label="Footer">
+        <p class="footer__head">Sections</p>
+        {links.map((link) => <a class="footer__link" href={link.href}>{link.label}</a>)}
+      </nav>
+
+      <div class="footer__col">
+        <p class="footer__head">Contact</p>
+        <a class="footer__link" href={mailtoHref}>{site.email}</a>
+        <a class="footer__link" href={whatsappHref} target="_blank" rel="noopener">
+          {site.phoneDisplay}
+        </a>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__head">Elsewhere</p>
+        {
+          site.socials.map((social) => (
+            <a class="footer__link" href={social.href} target="_blank" rel="noopener">
+              {social.label}
+            </a>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="footer__base">
+      <p class="footer__fine">© {year} {site.name}</p>
+      <p class="footer__fine">Built with Astro · No tracking</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--line-soft);
+    padding-block: clamp(2.5rem, 5vw, 4rem) 1.75rem;
+    background: color-mix(in srgb, var(--surface) 45%, transparent);
+  }
+
+  .footer__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: clamp(2rem, 5vw, 3rem);
+  }
+
+  .footer__brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .footer__mark {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 1px solid var(--line-hard);
+    border-radius: 3px;
+    margin-bottom: 0.6rem;
+  }
+
+  .footer__pip {
+    width: 5px;
+    height: 5px;
+    border-radius: 1px;
+    background: var(--grad);
+  }
+
+  .footer__name {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  .footer__role,
+  .footer__loc {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--muted);
+  }
+
+  .footer__col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
+  }
+
+  .footer__head {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 0.3rem;
+  }
+
+  .footer__link {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    transition: color 0.3s var(--ease);
+  }
+
+  .footer__link:hover {
+    color: var(--accent);
+  }
+
+  .footer__base {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .footer__fine {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--faint);
+  }
+</style>

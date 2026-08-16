@@ -1,0 +1,180 @@
+---
+import SplitText from './SplitText.astro';
+import { site, whatsappHref } from '../data/site';
+
+// Mono readouts in the side panel. Everything here is verifiable.
+const readouts = [
+  { k: 'ROLE', v: site.role },
+  { k: 'BASE', v: 'Kuala Lumpur, MY' },
+  { k: 'STACK', v: '.NET Core · Angular' },
+  { k: 'AWARDS', v: '3 · Malaysia Technology Expo' },
+];
+---
+
+<section class="hero">
+  <div class="container hero__inner m-exit">
+    <div class="hero__main">
+      <p class="eyebrow rise rise-1">Full-stack engineer · Available</p>
+
+      <h1 class="display hero__title">
+        <SplitText text="I build systems that" mode="load" delay={200} />
+        <SplitText text="track, move and account." mode="load" delay={200} offset={4} italic />
+      </h1>
+
+      <p class="lede hero__lede rise rise-4">
+        Traceability, stock, transactions and booking. The software an organisation runs its
+        operations on, where the data has to be right because somebody downstream is accountable
+        for it.
+      </p>
+
+      <div class="hero__actions rise rise-5">
+        <a class="btn" href={whatsappHref} target="_blank" rel="noopener">
+          Start a project
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="btn btn--ghost" href="#demos">Try the demos</a>
+      </div>
+    </div>
+
+    {/* Instrument panel. Mono readouts behind a live scanline, which is what
+        makes the corner of the page feel powered rather than decorated. */}
+    <aside class="hero__panel ticked rise rise-3" aria-label="At a glance">
+      <span class="scanline" aria-hidden="true"></span>
+
+      <div class="hero__panel-head">
+        <span class="hero__panel-title">SYS / PROFILE</span>
+        <span class:list={['status', { 'status--closed': !site.available }]}>
+          <span class="status__dot" aria-hidden="true"></span>
+          {site.available ? 'ONLINE' : 'BOOKED'}
+        </span>
+      </div>
+
+      <dl class="hero__readouts">
+        {
+          readouts.map((row) => (
+            <div class="hero__row">
+              <dt class="hero__k">{row.k}</dt>
+              <dd class="hero__v">{row.v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <div class="hero__panel-foot">
+        <span class="hero__avail">{site.availableFrom}</span>
+        <span class="hero__resp">{site.responseTime}</span>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block: clamp(3.5rem, 10vw, 7rem) clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  .hero__inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2.5rem, 6vw, 4.5rem);
+    align-items: start;
+  }
+
+  .hero__title {
+    margin-top: clamp(1.25rem, 3vw, 2rem);
+    max-width: 18ch;
+  }
+
+  .hero__lede {
+    margin-top: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: clamp(1.75rem, 3vw, 2.5rem);
+  }
+
+  /* --- instrument panel --------------------------------------------------- */
+  .hero__panel {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+  }
+
+  .hero__panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .hero__panel-title {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    color: var(--muted);
+  }
+
+  .hero__readouts {
+    margin: 0;
+    padding-block: 0.35rem;
+  }
+
+  .hero__row {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 1rem;
+    align-items: baseline;
+    padding-block: 0.6rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .hero__k {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    color: var(--faint);
+  }
+
+  .hero__v {
+    margin: 0;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+
+  .hero__panel-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-top: 1rem;
+  }
+
+  .hero__avail {
+    font-size: var(--step--1);
+    font-weight: 500;
+  }
+
+  .hero__resp {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--muted);
+  }
+
+  @media (min-width: 62rem) {
+    .hero__inner {
+      grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.9fr);
+      align-items: end;
+    }
+
+    .hero__panel {
+      margin-bottom: 0.35rem;
+    }
+  }
+</style>

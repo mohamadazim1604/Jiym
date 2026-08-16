@@ -1,0 +1,924 @@
+---
+/**
+ * Booking, QR check-in and attendance.
+ *
+ * Follows the real entity split rather than flattening it: Room, Booking,
+ * BookingParticipant and Attendance stay separate, a booking issues a QR
+ * token, and attendance is a check-in timestamp against that booking. That
+ * separation is the whole reason the reporting at the end is possible.
+ */
+
+const rooms = [
+  { id: 'anggerik', name: 'Anggerik', code: 'RM-01', capacity: 12, location: 'Level 3' },
+  { id: 'cempaka', name: 'Cempaka', code: 'RM-02', capacity: 8, location: 'Level 3' },
+  { id: 'melur', name: 'Melur', code: 'RM-03', capacity: 20, location: 'Level 5' },
+  { id: 'kenanga', name: 'Kenanga', code: 'RM-04', capacity: 4, location: 'Level 5' },
+];
+
+const slots = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+
+const seeded: Record<string, string> = {
+  'anggerik-09:00': 'Ops standup',
+  'anggerik-10:00': 'Ops standup',
+  'melur-11:00': 'Vendor review',
+  'cempaka-14:00': 'Interview panel',
+  'melur-15:00': 'Town hall',
+  'melur-16:00': 'Town hall',
+  'kenanga-09:00': 'One to one',
+};
+
+const totalCells = rooms.length * slots.length;
+const seededCount = Object.keys(seeded).length;
+---
+
+<div class="bk ticked" data-booking>
+  <span class="scanline" aria-hidden="true"></span>
+
+  <div class="bk__bar">
+    <div class="bk__brand">
+      <span class="bk__code">BKG</span>
+      <span class="bk__name">Space · room booking</span>
+    </div>
+    <div class="bk__days" role="group" aria-label="Select day">
+      <button class="bk__day is-active" type="button" data-day>MON</button>
+      <button class="bk__day" type="button" data-day>TUE</button>
+      <button class="bk__day" type="button" data-day>WED</button>
+    </div>
+  </div>
+
+  <div class="bk__stats">
+    <div class="bk__stat">
+      <span class="bk__stat-v" data-stat="rooms">{rooms.length}</span>
+      <span class="bk__stat-k">Rooms</span>
+    </div>
+    <div class="bk__stat">
+      <span class="bk__stat-v" data-stat="booked">{seededCount}</span>
+      <span class="bk__stat-k">Booked</span>
+    </div>
+    <div class="bk__stat">
+      <span class="bk__stat-v" data-stat="util">{Math.round((seededCount / totalCells) * 100)}%</span>
+      <span class="bk__stat-k">Utilisation</span>
+    </div>
+    <div class="bk__stat">
+      <span class="bk__stat-v" data-stat="checked">0</span>
+      <span class="bk__stat-k">Checked in</span>
+    </div>
+  </div>
+
+  <div class="bk__scroll">
+    <table class="bk__grid">
+      <caption class="visually-hidden">
+        Room availability by time slot. Choose a free slot to book it.
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col" class="bk__corner">Room</th>
+          {slots.map((slot) => <th scope="col" class="bk__time">{slot}</th>)}
+        </tr>
+      </thead>
+      <tbody>
+        {
+          rooms.map((room) => (
+            <tr>
+              <th scope="row" class="bk__room">
+                <span class="bk__room-name">{room.name}</span>
+                <span class="bk__room-meta">
+                  {room.code} · {room.capacity} pax · {room.location.replace('Level ', 'L')}
+                </span>
+              </th>
+
+              {slots.map((slot) => {
+                const key = `${room.id}-${slot}`;
+                const taken = seeded[key];
+                return (
+                  <td class="bk__td">
+                    <button
+                      type="button"
+                      class:list={['bk__cell', { 'is-taken': Boolean(taken) }]}
+                      data-cell={key}
+                      data-room={room.name}
+                      data-slot={slot}
+                      data-capacity={room.capacity}
+                      aria-label={
+                        taken
+                          ? `${room.name} at ${slot}, booked for ${taken}`
+                          : `${room.name} at ${slot}, free. Book this slot`
+                      }
+                    >
+                      <span class="bk__fill" aria-hidden="true" />
+                      <span class="bk__cell-label">{taken ?? 'Free'}</span>
+                    </button>
+                  </td>
+                );
+              })}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+
+  {/* --- booking drawer ------------------------------------------------- */}
+  <div class="bk__drawer" data-drawer hidden>
+    <div class="bk__drawer-head">
+      <div>
+        <p class="bk__drawer-title" data-drawer-title>Anggerik</p>
+        <p class="bk__drawer-sub" data-drawer-sub>09:00 · 12 pax</p>
+      </div>
+      <button class="bk__close" type="button" data-close aria-label="Close">×</button>
+    </div>
+
+    <div class="bk__fields">
+      <div class="bk__field">
+        <label class="bk__label" for="bk-title">Booking name</label>
+        <input class="bk__input" id="bk-title" type="text" value="Project kick-off" />
+      </div>
+
+      <div class="bk__field">
+        <span class="bk__label">Participants</span>
+        <div class="bk__stepper">
+          <button class="bk__step" type="button" data-step="-1" aria-label="Fewer">−</button>
+          <span class="bk__count" data-count>4</span>
+          <button class="bk__step" type="button" data-step="1" aria-label="More">+</button>
+        </div>
+        <p class="bk__hint" data-capacity>Within capacity</p>
+      </div>
+    </div>
+
+    <div class="bk__actions">
+      <button class="btn" type="button" data-confirm>
+        Confirm booking
+        <span class="btn__arrow" aria-hidden="true">→</span>
+      </button>
+      <button class="btn btn--ghost" type="button" data-cancel hidden>Cancel booking</button>
+    </div>
+  </div>
+
+  {/* --- token and attendance -------------------------------------------- */}
+  <div class="bk__panel" data-token-panel hidden>
+    <div class="bk__token">
+      <div class="bk__qr" data-qr aria-hidden="true"></div>
+      <div class="bk__token-meta">
+        <span class="bk__label">QR token</span>
+        <span class="bk__token-id" data-token-id>Not issued</span>
+        <span class="bk__token-for" data-token-for>No active booking</span>
+        <button class="btn btn--sm bk__scan" type="button" data-scan>Simulate scan</button>
+      </div>
+    </div>
+
+    <div class="bk__attendance">
+      <div class="bk__att-head">
+        <span class="bk__label">Attendance</span>
+        <span class="bk__att-count" data-att-count>0 checked in</span>
+      </div>
+      <ol class="bk__att-list" data-att-list>
+        <li class="bk__att-empty">No check-ins yet. Scan the token to record one.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="bk__toast" data-toast role="status" aria-live="polite"></div>
+</div>
+
+<style>
+  .bk {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .bk__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    padding: 0.9rem clamp(1rem, 2.5vw, 1.5rem);
+    background: var(--deep);
+    color: var(--deep-text);
+  }
+
+  .bk__brand {
+    display: flex;
+    align-items: baseline;
+    gap: 0.65rem;
+  }
+
+  .bk__code {
+    font-family: var(--font-mono);
+    font-size: var(--step-0);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .bk__name {
+    font-family: var(--font-display);
+    font-size: var(--step--1);
+    font-weight: 500;
+  }
+
+  .bk__days {
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  .bk__day {
+    padding: 0.32rem 0.7rem;
+    background: transparent;
+    border: 1px solid var(--deep-line);
+    border-radius: 3px;
+    color: var(--deep-muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.3s var(--ease);
+  }
+
+  .bk__day:hover {
+    color: var(--deep-text);
+    border-color: var(--deep-text);
+  }
+
+  .bk__day.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* --- stats -------------------------------------------------------------- */
+  .bk__stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .bk__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.8rem clamp(1rem, 2.5vw, 1.5rem);
+    background: var(--surface);
+  }
+
+  .bk__stat-v {
+    font-family: var(--font-mono);
+    font-size: var(--step-2);
+    font-weight: 500;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.35s var(--ease);
+  }
+
+  .bk__stat-v.is-bumped {
+    color: var(--accent);
+  }
+
+  .bk__stat-k {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* --- grid --------------------------------------------------------------- */
+  .bk__scroll {
+    overflow-x: auto;
+  }
+
+  .bk__grid {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 46rem;
+  }
+
+  .bk__corner,
+  .bk__time {
+    padding: 0.7rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .bk__corner {
+    text-align: left;
+    padding-left: clamp(1rem, 2.5vw, 1.5rem);
+    width: 13rem;
+  }
+
+  .bk__room {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    padding: 0.7rem clamp(1rem, 2.5vw, 1.5rem);
+    text-align: left;
+    font-weight: 400;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .bk__room-name {
+    font-family: var(--font-display);
+    font-size: var(--step-0);
+    font-weight: 500;
+  }
+
+  .bk__room-meta {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--faint);
+    /* Must stay on one line or the row heights go uneven across the grid. */
+    white-space: nowrap;
+  }
+
+  .bk__td {
+    padding: 0.22rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .bk__cell {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-height: 3.1rem;
+    padding: 0.45rem 0.55rem;
+    background: var(--surface-2);
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: var(--faint);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    transition:
+      border-color 0.3s var(--ease),
+      color 0.3s var(--ease),
+      transform 0.3s var(--ease);
+  }
+
+  .bk__cell:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .bk__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--deep);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s var(--ease);
+  }
+
+  .bk__cell-label {
+    position: relative;
+    z-index: 1;
+  }
+
+  .bk__cell.is-taken {
+    color: var(--deep-text);
+    cursor: default;
+  }
+
+  .bk__cell.is-taken:hover {
+    transform: none;
+    border-color: transparent;
+    color: var(--deep-text);
+  }
+
+  .bk__cell.is-taken .bk__fill {
+    transform: scaleX(1);
+  }
+
+  .bk__cell.is-mine .bk__fill {
+    background: var(--accent);
+  }
+
+  .bk__cell.is-mine {
+    cursor: pointer;
+  }
+
+  .bk__cell.is-selected {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* --- drawer ------------------------------------------------------------- */
+  .bk__drawer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    border-top: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+
+  .bk__drawer[hidden],
+  .bk__panel[hidden] {
+    display: none;
+  }
+
+  .bk__drawer-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .bk__drawer-title {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  .bk__drawer-sub {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--muted);
+  }
+
+  .bk__close {
+    width: 1.9rem;
+    height: 1.9rem;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.3s var(--ease);
+  }
+
+  .bk__close:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .bk__fields {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .bk__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .bk__label {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .bk__input {
+    padding: 0.6rem 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-size: var(--step--1);
+  }
+
+  .bk__stepper {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .bk__step {
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.3s var(--ease);
+  }
+
+  .bk__step:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .bk__count {
+    min-width: 2.4rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+    border-inline: 1px solid var(--line);
+    line-height: 2.2rem;
+  }
+
+  .bk__hint {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--muted);
+  }
+
+  .bk__hint.is-over {
+    color: #9a5b00;
+  }
+
+  .bk__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  /* --- token + attendance -------------------------------------------------- */
+  .bk__panel {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(1rem, 2.5vw, 1.5rem);
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .bk__token {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  /* Token glyph. A deterministic matrix drawn from the token string: a stand-in
+     for the real QR, not a scannable code. */
+  .bk__qr {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 2px;
+    width: 6.5rem;
+    height: 6.5rem;
+    flex: none;
+    padding: 0.4rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  /* The matrix cells are generated at runtime, so these need `:global()` too. */
+  .bk__qr :global(span) {
+    background: var(--bg-deep);
+    border-radius: 1px;
+  }
+
+  .bk__qr :global(span.on) {
+    background: var(--ink);
+  }
+
+  .bk__token-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+
+  .bk__token-id {
+    font-family: var(--font-mono);
+    font-size: var(--step-0);
+    letter-spacing: 0.06em;
+    color: var(--accent);
+  }
+
+  .bk__token-for {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--muted);
+  }
+
+  .bk__scan {
+    margin-top: 0.4rem;
+  }
+
+  .bk__att-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .bk__att-count {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--faint);
+  }
+
+  .bk__att-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.6rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    max-height: 9rem;
+    overflow-y: auto;
+  }
+
+  /* `:global()` because these rows are created at runtime and therefore never
+     carry Astro's scoped style attribute. */
+  .bk__att-list :global(li) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 0.6rem;
+    background: var(--surface-2);
+    border-left: 2px solid var(--accent-2);
+    border-radius: 0 3px 3px 0;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  .bk__att-list :global(.bk__att-empty) {
+    border-left-color: var(--line);
+    color: var(--faint);
+  }
+
+  /* --- toast --------------------------------------------------------------- */
+  .bk__toast {
+    position: absolute;
+    left: 50%;
+    bottom: 1rem;
+    transform: translate(-50%, 1.5rem);
+    padding: 0.6rem 1.1rem;
+    background: var(--deep);
+    color: var(--deep-text);
+    border-radius: 100px;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+    z-index: 5;
+  }
+
+  .bk__toast.is-shown {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  @media (min-width: 46rem) {
+    .bk__stats {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .bk__fields {
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      gap: 1.5rem;
+    }
+
+    .bk__panel {
+      grid-template-columns: auto 1fr;
+      align-items: start;
+    }
+  }
+</style>
+
+<script>
+  type Booking = { label: string; mine: boolean; token?: string; pax: number };
+
+  const root = document.querySelector<HTMLElement>('[data-booking]');
+
+  if (root) {
+    const cells = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-cell]'));
+    const drawer = root.querySelector<HTMLElement>('[data-drawer]')!;
+    const drawerTitle = root.querySelector<HTMLElement>('[data-drawer-title]')!;
+    const drawerSub = root.querySelector<HTMLElement>('[data-drawer-sub]')!;
+    const titleInput = root.querySelector<HTMLInputElement>('#bk-title')!;
+    const countEl = root.querySelector<HTMLElement>('[data-count]')!;
+    const capacityEl = root.querySelector<HTMLElement>('[data-capacity]')!;
+    const confirmBtn = root.querySelector<HTMLButtonElement>('[data-confirm]')!;
+    const cancelBtn = root.querySelector<HTMLButtonElement>('[data-cancel]')!;
+    const toast = root.querySelector<HTMLElement>('[data-toast]')!;
+
+    const tokenPanel = root.querySelector<HTMLElement>('[data-token-panel]')!;
+    const qrEl = root.querySelector<HTMLElement>('[data-qr]')!;
+    const tokenIdEl = root.querySelector<HTMLElement>('[data-token-id]')!;
+    const tokenForEl = root.querySelector<HTMLElement>('[data-token-for]')!;
+    const scanBtn = root.querySelector<HTMLButtonElement>('[data-scan]')!;
+    const attList = root.querySelector<HTMLElement>('[data-att-list]')!;
+    const attCount = root.querySelector<HTMLElement>('[data-att-count]')!;
+
+    const guests = [
+      ['Nurul A.', 'Internal'],
+      ['Faiz R.', 'Internal'],
+      ['Wei Lin', 'Vendor'],
+      ['Suresh K.', 'Internal'],
+      ['Aina M.', 'Guest'],
+      ['Hafiz Z.', 'Vendor'],
+    ];
+
+    const initial = new Map<string, Booking>();
+    for (const cell of cells) {
+      if (cell.classList.contains('is-taken')) {
+        const label = cell.querySelector('.bk__cell-label')!.textContent ?? '';
+        initial.set(cell.dataset.cell!, { label, mine: false, pax: 4 });
+      }
+    }
+
+    const bookings = new Map(initial);
+    let selected: HTMLButtonElement | null = null;
+    let participants = 4;
+    let activeToken: string | null = null;
+    let checkedIn = 0;
+
+    function setStat(name: string, value: string) {
+      const el = root!.querySelector<HTMLElement>(`[data-stat="${name}"]`);
+      if (!el || el.textContent === value) return;
+      el.textContent = value;
+      el.classList.add('is-bumped');
+      setTimeout(() => el.classList.remove('is-bumped'), 700);
+    }
+
+    function refreshStats() {
+      setStat('booked', String(bookings.size));
+      setStat('util', `${Math.round((bookings.size / cells.length) * 100)}%`);
+      setStat('checked', String(checkedIn));
+    }
+
+    let toastTimer: number | undefined;
+    function say(message: string) {
+      toast.textContent = message;
+      toast.classList.add('is-shown');
+      clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove('is-shown'), 2600);
+    }
+
+    function paint(cell: HTMLButtonElement) {
+      const booking = bookings.get(cell.dataset.cell!);
+      const label = cell.querySelector('.bk__cell-label')!;
+      cell.classList.toggle('is-taken', Boolean(booking));
+      cell.classList.toggle('is-mine', Boolean(booking?.mine));
+      label.textContent = booking ? booking.label : 'Free';
+      cell.setAttribute(
+        'aria-label',
+        booking
+          ? `${cell.dataset.room} at ${cell.dataset.slot}, booked for ${booking.label}`
+          : `${cell.dataset.room} at ${cell.dataset.slot}, free. Book this slot`,
+      );
+    }
+
+    /** Deterministic matrix from the token string, so the same token always
+        draws the same glyph. Decorative, not a scannable code. */
+    function drawToken(token: string) {
+      let h = 0;
+      for (let i = 0; i < token.length; i++) h = (h * 31 + token.charCodeAt(i)) >>> 0;
+      qrEl.innerHTML = '';
+      for (let i = 0; i < 81; i++) {
+        const span = document.createElement('span');
+        h = (h * 1103515245 + 12345) >>> 0;
+        const corner = (i % 9 < 3 && i < 27) || (i % 9 > 5 && i < 27) || (i % 9 < 3 && i > 53);
+        if (corner ? (i * 7 + h) % 3 !== 0 : (h >>> 16) % 2 === 0) span.className = 'on';
+        qrEl.appendChild(span);
+      }
+    }
+
+    function closeDrawer() {
+      drawer.hidden = true;
+      selected?.classList.remove('is-selected');
+      selected = null;
+    }
+
+    function updateCapacity() {
+      const cap = Number(selected?.dataset.capacity ?? 0);
+      countEl.textContent = String(participants);
+      const over = participants > cap;
+      capacityEl.textContent = over
+        ? `Over capacity by ${participants - cap}`
+        : `${cap - participants} seats spare`;
+      capacityEl.classList.toggle('is-over', over);
+      confirmBtn.disabled = over;
+    }
+
+    function openDrawer(cell: HTMLButtonElement) {
+      selected?.classList.remove('is-selected');
+      selected = cell;
+      cell.classList.add('is-selected');
+
+      const booking = bookings.get(cell.dataset.cell!);
+      drawerTitle.textContent = cell.dataset.room!;
+      drawerSub.textContent = `${cell.dataset.slot} · ${cell.dataset.capacity} pax`;
+      cancelBtn.hidden = !booking?.mine;
+      confirmBtn.hidden = Boolean(booking?.mine);
+      if (booking?.mine) {
+        titleInput.value = booking.label;
+        participants = booking.pax;
+      }
+      drawer.hidden = false;
+      updateCapacity();
+      drawer.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    for (const cell of cells) {
+      cell.addEventListener('click', () => {
+        const booking = bookings.get(cell.dataset.cell!);
+        if (booking && !booking.mine) {
+          say(`${cell.dataset.room} is taken at ${cell.dataset.slot}`);
+          return;
+        }
+        openDrawer(cell);
+      });
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        participants = Math.max(1, Math.min(40, participants + Number(btn.dataset.step)));
+        updateCapacity();
+      });
+    });
+
+    confirmBtn.addEventListener('click', () => {
+      if (!selected) return;
+      const label = titleInput.value.trim() || 'Untitled booking';
+      const token = `BK-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+
+      bookings.set(selected.dataset.cell!, { label, mine: true, token, pax: participants });
+      paint(selected);
+      refreshStats();
+
+      activeToken = token;
+      checkedIn = 0;
+      drawToken(token);
+      tokenIdEl.textContent = token;
+      tokenForEl.textContent = `${selected.dataset.room} · ${selected.dataset.slot} · ${participants} invited`;
+      attList.innerHTML = '<li class="bk__att-empty">No check-ins yet. Scan the token to record one.</li>';
+      attCount.textContent = '0 checked in';
+      tokenPanel.hidden = false;
+      refreshStats();
+
+      say(`Booked ${selected.dataset.room} at ${selected.dataset.slot}`);
+      closeDrawer();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      if (!selected) return;
+      bookings.delete(selected.dataset.cell!);
+      paint(selected);
+      activeToken = null;
+      checkedIn = 0;
+      tokenPanel.hidden = true;
+      refreshStats();
+      say('Booking cancelled');
+      closeDrawer();
+    });
+
+    scanBtn.addEventListener('click', () => {
+      if (!activeToken) return;
+      if (checkedIn >= guests.length) {
+        say('Everyone invited has checked in');
+        return;
+      }
+      const [name, org] = guests[checkedIn];
+      checkedIn += 1;
+
+      if (checkedIn === 1) attList.innerHTML = '';
+      const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${name} · ${org}</span><span>${time}</span>`;
+      attList.prepend(li);
+      attCount.textContent = `${checkedIn} checked in`;
+      refreshStats();
+      say(`${name} checked in`);
+    });
+
+    root.querySelector('[data-close]')?.addEventListener('click', closeDrawer);
+
+    root.querySelectorAll<HTMLButtonElement>('[data-day]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        root.querySelectorAll('[data-day]').forEach((b) => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        say(`Showing ${btn.textContent?.trim()}`);
+      });
+    });
+
+    refreshStats();
+  }
+</script>

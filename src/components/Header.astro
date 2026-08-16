@@ -1,0 +1,138 @@
+---
+import { site, whatsappHref } from '../data/site';
+
+const links = [
+  { label: 'Systems', href: '/#systems' },
+  { label: 'Demos', href: '/#demos' },
+  { label: 'Capabilities', href: '/#capabilities' },
+  { label: 'About', href: '/#about' },
+];
+---
+
+<header class="header">
+  <div class="container header__inner">
+    <a href="/" class="mark" aria-label={`${site.name}, home`}>
+      <span class="mark__glyph" aria-hidden="true">
+        <span class="mark__pip"></span>
+      </span>
+      <span class="mark__text">{site.name}</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      {
+        links.map((link) => (
+          <a class="nav__link" href={link.href}>
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <a class="btn btn--sm header__cta" href={whatsappHref} target="_blank" rel="noopener">
+      Start a project
+    </a>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    min-height: 4.25rem;
+  }
+
+  .mark {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  /* A small square with a live pip inside. Reads as an instrument, and it is
+     the only place the wordmark needs decoration. */
+  .mark__glyph {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 1px solid var(--line-hard);
+    border-radius: 3px;
+    flex: none;
+  }
+
+  .mark__pip {
+    width: 5px;
+    height: 5px;
+    border-radius: 1px;
+    background: var(--grad);
+  }
+
+  .mark__text {
+    font-family: var(--font-display);
+    font-size: var(--step-0);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .nav {
+    display: none;
+    gap: clamp(1rem, 2.5vw, 2rem);
+  }
+
+  .nav__link {
+    position: relative;
+    padding-block: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition: color 0.3s var(--ease);
+  }
+
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--grad);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s var(--ease);
+  }
+
+  .nav__link:hover {
+    color: var(--ink);
+  }
+
+  .nav__link:hover::after {
+    transform: scaleX(1);
+  }
+
+  /* No hamburger. Four links do not justify a JavaScript dependency and an
+     extra tap; the page scrolls to the same places and the footer repeats them. */
+  @media (min-width: 56rem) {
+    .nav {
+      display: flex;
+    }
+  }
+
+  @media (max-width: 26rem) {
+    .header__cta {
+      display: none;
+    }
+  }
+</style>

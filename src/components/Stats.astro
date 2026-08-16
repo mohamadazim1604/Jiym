@@ -1,0 +1,75 @@
+---
+import { site } from '../data/site';
+---
+
+{/* Metrics bar. Verifiable numbers, placed before any adjective. */}
+<section class="stats" aria-label="At a glance">
+  <div class="container stats__grid">
+    {
+      site.stats.map((stat, i) => (
+        <div class="stats__cell" style={`--i:${i}`}>
+          <span class="stats__value m-count" style={`--i:${i}`}>
+            {stat.value}
+          </span>
+          <span class="stats__label m-rise" style={`--i:${i}`}>
+            {stat.label}
+          </span>
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .stats {
+    position: relative;
+    padding-block: clamp(2.5rem, 5vw, 3.5rem);
+    border-block: 1px solid var(--line-soft);
+    background: color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+
+  .stats__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(1.5rem, 4vw, 2.5rem);
+  }
+
+  .stats__cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  /* Mono numerals at display scale. Tabular figures so the row does not jitter
+     if a value is ever swapped for a different width. */
+  .stats__value {
+    font-family: var(--font-mono);
+    font-size: clamp(2.1rem, 5vw, 3.4rem);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    font-variant-numeric: tabular-nums;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .stats__label {
+    font-size: var(--step--1);
+    color: var(--muted);
+    max-width: 24ch;
+    text-wrap: pretty;
+  }
+
+  @media (min-width: 52rem) {
+    .stats__grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .stats__cell + .stats__cell {
+      padding-left: clamp(1.25rem, 3vw, 2.25rem);
+      border-left: 1px solid var(--line-soft);
+    }
+  }
+</style>

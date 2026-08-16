@@ -1,0 +1,918 @@
+/* ==========================================================================
+   DESIGN SYSTEM  ·  "Instrument"
+   Cool silver and graphite, geometric display type, mono for anything
+   numeric. The register is engineering console, not boutique: flat surfaces,
+   hairline rules, tight tracking, one electric accent used only where the
+   interface is live.
+   ========================================================================== */
+
+/* --------------------------------------------------------------- 1. tokens */
+
+:root {
+  /* Cool neutral ramp. Silver rather than warm paper. */
+  --bg: #eceef2;
+  --bg-deep: #e2e5ea;
+  --surface: #ffffff;
+  --surface-2: #f6f7f9;
+  --ink: #0a0d12;
+  --ink-2: #262c35;
+  --muted: #697382;
+  --faint: #98a1ad;
+
+  --line: rgba(10, 13, 18, 0.11);
+  --line-soft: rgba(10, 13, 18, 0.06);
+  --line-hard: rgba(10, 13, 18, 0.2);
+
+  /* One electric accent, plus a cyan for gradients and live states. */
+  --accent: #1156f0;
+  --accent-2: #00c2ff;
+  --accent-soft: rgba(17, 86, 240, 0.1);
+  --accent-line: rgba(17, 86, 240, 0.35);
+  --grad: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 100%);
+
+  /* Inverted surfaces */
+  --deep: #0a0d12;
+  --deep-2: #111721;
+  --deep-text: #e8ecf2;
+  --deep-muted: #8d97a5;
+  --deep-line: rgba(232, 236, 242, 0.14);
+
+  --font-display: 'Space Grotesk Variable', 'Inter Variable', system-ui, sans-serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', monospace;
+
+  --step--2: clamp(0.69rem, 0.67rem + 0.08vw, 0.74rem);
+  --step--1: clamp(0.81rem, 0.78rem + 0.14vw, 0.89rem);
+  --step-0: clamp(0.97rem, 0.94rem + 0.18vw, 1.06rem);
+  --step-1: clamp(1.15rem, 1.09rem + 0.3vw, 1.35rem);
+  --step-2: clamp(1.42rem, 1.3rem + 0.6vw, 1.85rem);
+  --step-3: clamp(1.8rem, 1.55rem + 1.25vw, 2.65rem);
+  --step-4: clamp(2.3rem, 1.8rem + 2.5vw, 3.9rem);
+  --step-5: clamp(2.8rem, 1.75rem + 5.2vw, 6.1rem);
+
+  --container: 80rem;
+  --gutter: clamp(1.15rem, 4.5vw, 4rem);
+  --section: clamp(4.5rem, 10vw, 8.5rem);
+  --measure: 66ch;
+
+  --radius: 4px;
+  --radius-lg: 10px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------------------------------------------------------------- 2. reset */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  /* `clip`, not `hidden`: `overflow-x: hidden` turns the body into a scroll
+     container and silently breaks every `position: sticky` on the page. */
+  overflow-x: clip;
+}
+
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ------------------------------------------------------------ 3. structure */
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.section {
+  position: relative;
+  padding-block: var(--section);
+}
+
+.section + .section {
+  border-top: 1px solid var(--line-soft);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  background: var(--ink);
+  color: #fff;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* ----------------------------------------------------------- 4. typography */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-size: var(--step-5);
+  font-weight: 500;
+  line-height: 0.96;
+  letter-spacing: -0.042em;
+}
+
+.h2 {
+  font-family: var(--font-display);
+  font-size: var(--step-4);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.h3 {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+/* Replaces the old italic serif flourish. Accent phrases are now rendered in
+   the gradient, which is the modern equivalent of the same move: one clause
+   lifts out of the line without changing its weight or size. */
+.accentuate {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* When an accent phrase is word-split for the reveal animation, the gradient
+   has to be painted on the word spans themselves. A background clipped to text
+   on the parent has no text of its own left to clip to once every word lives
+   inside its own inline-block, so the whole line renders invisible. */
+.accentuate .split__i {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Mono micro-label. The engineering-console cue that does the most work. */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.eyebrow::before {
+  content: '';
+  width: 1.6rem;
+  height: 1px;
+  background: var(--accent);
+  flex: none;
+}
+
+.eyebrow--plain::before {
+  display: none;
+}
+
+.lede {
+  font-size: var(--step-1);
+  line-height: 1.5;
+  color: var(--ink-2);
+  max-width: 48ch;
+  text-wrap: pretty;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.measure {
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+.index {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------- 5. controls */
+
+.btn {
+  --btn-bg: var(--ink);
+  --btn-fg: #fff;
+  --btn-border: var(--ink);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.85rem 1.4rem;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: 1px solid var(--btn-border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    background 0.35s var(--ease),
+    color 0.35s var(--ease),
+    border-color 0.35s var(--ease),
+    transform 0.35s var(--ease);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  --btn-bg: var(--accent);
+  --btn-border: var(--accent);
+}
+
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--ink);
+  --btn-border: var(--line-hard);
+}
+
+.btn--ghost:hover {
+  --btn-bg: transparent;
+  --btn-fg: var(--accent);
+  --btn-border: var(--accent);
+}
+
+.btn--sm {
+  padding: 0.55rem 0.95rem;
+}
+
+.btn--on-ink {
+  --btn-bg: #fff;
+  --btn-fg: var(--ink);
+  --btn-border: #fff;
+}
+
+.btn--on-ink:hover {
+  --btn-bg: var(--accent);
+  --btn-fg: #fff;
+  --btn-border: var(--accent);
+}
+
+.btn[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.btn__arrow {
+  transition: transform 0.35s var(--ease);
+}
+
+.btn:hover .btn__arrow {
+  transform: translateX(3px);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  position: relative;
+  padding-bottom: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 0.45s var(--ease);
+}
+
+.link:hover::after {
+  transform: scaleX(1);
+}
+
+/* Live status chip. */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.35rem 0.8rem 0.35rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+
+.status__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  flex: none;
+  box-shadow: 0 0 0 0 rgba(0, 194, 255, 0.5);
+}
+
+.status--closed .status__dot {
+  background: var(--faint);
+}
+
+/* Small mono tag. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* -------------------------------------------------------------- 6. surface */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  transition:
+    border-color 0.4s var(--ease),
+    transform 0.4s var(--ease);
+}
+
+.on-ink {
+  background: var(--deep);
+  color: var(--deep-text);
+}
+
+.on-ink .eyebrow {
+  color: var(--deep-muted);
+}
+
+.on-ink .eyebrow::before {
+  background: var(--accent-2);
+}
+
+.on-ink .muted {
+  color: var(--deep-muted);
+}
+
+.on-ink .status {
+  background: transparent;
+  border-color: var(--deep-line);
+  color: var(--deep-text);
+}
+
+/* Corner ticks. A cheap, precise HUD cue that makes a plain rectangle read as
+   an instrument panel rather than a div. */
+.ticked {
+  position: relative;
+}
+
+.ticked::before,
+.ticked::after {
+  content: '';
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--accent);
+  pointer-events: none;
+}
+
+.ticked::before {
+  top: -1px;
+  left: -1px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.ticked::after {
+  bottom: -1px;
+  right: -1px;
+  border-left: 0;
+  border-top: 0;
+}
+
+/* --------------------------------------------------- 7. ambient background */
+
+/* Fixed technical grid that drifts continuously. This is the "future moving"
+   layer: it is always in motion, but at an amplitude low enough that you read
+   it as depth rather than as an animation competing with the content. */
+.field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.field__grid {
+  position: absolute;
+  inset: -30%;
+  background-image:
+    linear-gradient(to right, rgba(10, 13, 18, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(10, 13, 18, 0.05) 1px, transparent 1px);
+  background-size: 74px 74px;
+  /* Faded at the edges so it never reads as a hard wallpaper. */
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000 30%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000 30%, transparent 78%);
+}
+
+.field__mesh {
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(30rem 30rem at 18% 20%, rgba(17, 86, 240, 0.13), transparent 62%),
+    radial-gradient(26rem 26rem at 82% 62%, rgba(0, 194, 255, 0.12), transparent 62%),
+    radial-gradient(22rem 22rem at 55% 92%, rgba(17, 86, 240, 0.08), transparent 62%);
+  filter: blur(10px);
+}
+
+/* --------------------------------------------------------------- 8. motion */
+
+@keyframes reveal-in {
+  from { opacity: 0; transform: translateY(1.6rem); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes word-up {
+  from { transform: translateY(120%); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes wipe-in {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes zoom-settle {
+  from { transform: scale(1.16); }
+  to { transform: scale(1); }
+}
+
+@keyframes draw-rule {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes blur-in {
+  from { opacity: 0; filter: blur(12px); transform: translateY(2rem); }
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+
+@keyframes drift-up {
+  from { transform: translateY(var(--drift, 4rem)); }
+  to { transform: translateY(calc(var(--drift, 4rem) * -1)); }
+}
+
+@keyframes fade-out-up {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-4rem) scale(0.96); }
+}
+
+@keyframes counter-up {
+  from { opacity: 0; transform: translateY(2rem); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes grow-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ---- ambient loops ---- */
+
+@keyframes field-drift {
+  from { transform: translate3d(-1.5%, -1%, 0); }
+  to { transform: translate3d(1.5%, 1.5%, 0); }
+}
+
+@keyframes mesh-drift {
+  from { transform: translate3d(-3%, -2%, 0) scale(1); }
+  to { transform: translate3d(4%, 3%, 0) scale(1.12); }
+}
+
+@keyframes status-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 194, 255, 0.5); }
+  70%, 100% { box-shadow: 0 0 0 7px rgba(0, 194, 255, 0); }
+}
+
+@keyframes scan-sweep {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+@keyframes sheen-sweep {
+  to { transform: translateX(130%) skewX(-12deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .field__grid {
+    animation: field-drift 30s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  .field__mesh {
+    animation: mesh-drift 24s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  .status__dot {
+    animation: status-pulse 2.6s ease-out infinite;
+  }
+
+  /* ---- on-load entrance ---- */
+  .rise {
+    animation: reveal-in 0.9s var(--ease) both;
+  }
+
+  .rise-1 { animation-delay: 0.06s; }
+  .rise-2 { animation-delay: 0.14s; }
+  .rise-3 { animation-delay: 0.24s; }
+  .rise-4 { animation-delay: 0.36s; }
+  .rise-5 { animation-delay: 0.48s; }
+
+  /* ---- scroll-driven ---- */
+  @supports (animation-timeline: view()) {
+    .m-rise {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry calc(8% + var(--i, 0) * 7%) entry calc(48% + var(--i, 0) * 7%);
+    }
+
+    .m-blur {
+      animation: blur-in linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 55%;
+    }
+
+    .m-wipe {
+      animation: wipe-in linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 60%;
+    }
+
+    .m-zoom {
+      animation: zoom-settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 55%;
+    }
+
+    .m-rule {
+      animation: draw-rule linear both;
+      animation-timeline: view();
+      animation-range: entry 15% entry 70%;
+    }
+
+    .m-drift {
+      animation: drift-up linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+
+    .m-exit {
+      animation: fade-out-up linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 90%;
+    }
+
+    .m-count {
+      animation: counter-up linear both;
+      animation-timeline: view();
+      animation-range: entry calc(10% + var(--i, 0) * 8%) entry calc(55% + var(--i, 0) * 8%);
+    }
+
+    .m-scale {
+      animation: scale-in linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 60%;
+    }
+
+    .m-progress {
+      animation: grow-x linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    .split--scroll .split__i {
+      animation: word-up linear both;
+      animation-timeline: view();
+      animation-range: entry calc(6% + var(--i, 0) * 2.2%) entry calc(46% + var(--i, 0) * 2.2%);
+    }
+  }
+
+  /* ---- fallback for browsers without scroll-driven animations ---- */
+  @supports not (animation-timeline: view()) {
+    .js .m-rise,
+    .js .m-blur,
+    .js .m-wipe,
+    .js .m-rule,
+    .js .m-count,
+    .js .m-scale,
+    .js .split--scroll .split__i {
+      opacity: 0;
+    }
+
+    .js .m-rise.is-in {
+      animation: reveal-in 0.9s var(--ease) both;
+      animation-delay: calc(var(--i, 0) * 90ms);
+    }
+
+    .js .m-blur.is-in { animation: blur-in 1s var(--ease) both; }
+    .js .m-wipe.is-in { animation: wipe-in 1s var(--ease) both; opacity: 1; }
+    .js .m-zoom.is-in { animation: zoom-settle 1.3s var(--ease) both; }
+    .js .m-rule.is-in { animation: draw-rule 1s var(--ease) both; opacity: 1; }
+
+    .js .m-count.is-in {
+      animation: counter-up 1s var(--ease) both;
+      animation-delay: calc(var(--i, 0) * 110ms);
+    }
+
+    .js .m-scale.is-in { animation: scale-in 1s var(--ease) both; }
+
+    .js .split--scroll.is-in .split__i {
+      animation: word-up 0.85s var(--ease) both;
+      animation-delay: calc(var(--i, 0) * 45ms);
+    }
+  }
+
+  .split--load .split__i {
+    animation: word-up 0.95s var(--ease) both;
+    animation-delay: calc(var(--base, 0ms) + var(--i, 0) * 45ms);
+  }
+
+  .sheen-host:hover .sheen::after,
+  .sheen:hover::after {
+    animation: sheen-sweep 1s var(--ease) forwards;
+  }
+}
+
+/* Word-mask mechanics. clip-path, not overflow, so glyphs that lean or extend
+   past their advance width are never sheared at the sides. */
+.split {
+  display: inline;
+}
+
+.split__w {
+  display: inline-block;
+  vertical-align: bottom;
+  margin-right: 0.26em;
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
+  clip-path: inset(-0.6em -0.3em 0 -0.2em);
+}
+
+.split__i {
+  display: inline-block;
+  will-change: transform;
+}
+
+.m-progress,
+.m-rule {
+  transform-origin: left;
+}
+
+.sheen {
+  position: relative;
+  isolation: isolate;
+}
+
+.sheen::after {
+  content: '';
+  position: absolute;
+  inset: -20% -40%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 44%, rgba(255, 255, 255, 0.6) 50%, transparent 56%);
+  transform: translateX(-130%) skewX(-12deg);
+}
+
+/* A light bar that sweeps down a panel on a loop. Used sparingly, on live
+   surfaces only, so it reads as "this thing is running". */
+.scanline {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 28%;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(0, 194, 255, 0.09), transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .scanline {
+    animation: scan-sweep 7s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .scanline { display: none; }
+}
+
+/* ---------------------------------------------------------------- 9. prose */
+
+.prose {
+  max-width: var(--measure);
+  font-size: var(--step-0);
+  line-height: 1.72;
+  color: var(--ink-2);
+}
+
+.prose > * + * {
+  margin-top: 1.35em;
+}
+
+.prose h2 {
+  font-size: var(--step-2);
+  color: var(--ink);
+  margin-top: 2.4em;
+}
+
+.prose h3 {
+  font-family: var(--font-sans);
+  font-size: var(--step-0);
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--ink);
+  margin-top: 1.9em;
+}
+
+.prose strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.prose a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.15em;
+}
+
+.prose li + li {
+  margin-top: 0.45em;
+}
+
+.prose li::marker {
+  color: var(--accent);
+}
+
+.prose blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 1.3em;
+  font-size: var(--step-1);
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+  margin-block: 2.4em;
+}
+
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--bg-deep);
+  padding: 0.14em 0.38em;
+  border-radius: 3px;
+}
+
+.prose pre {
+  background: var(--deep);
+  color: var(--deep-text);
+  padding: 1.2rem;
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+}
+
+/* ----------------------------------------------------------- 10. utilities */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

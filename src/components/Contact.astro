@@ -1,0 +1,164 @@
+---
+import SplitText from './SplitText.astro';
+import { site, whatsappHref, mailtoHref } from '../data/site';
+
+/* Direct channels, not a contact form. A form needs a backend, attracts spam,
+   and people quietly distrust it because they have all had one vanish. */
+const channels = [
+  { label: 'WhatsApp', value: site.phoneDisplay, href: whatsappHref, external: true },
+  { label: 'Email', value: site.email, href: mailtoHref, external: false },
+];
+---
+
+<section class="section on-ink contact" id="contact">
+  <span class="scanline" aria-hidden="true"></span>
+
+  <div class="container">
+    <p class="eyebrow m-rise">Next step</p>
+
+    <h2 class="display contact__title">
+      <SplitText text="Tell me what is" />
+      <SplitText text="slowing you down." offset={3} italic />
+    </h2>
+
+    <p class="lede contact__lede m-rise">
+      A short call, no charge and no pitch deck. If I am not the right person for it I will say so
+      and point you at someone who is.
+    </p>
+
+    <ul class="contact__channels">
+      {
+        channels.map((channel, i) => (
+          <li class="contact__row m-rise" style={`--i:${i}`}>
+            <a
+              class="contact__link"
+              href={channel.href}
+              target={channel.external ? '_blank' : undefined}
+              rel={channel.external ? 'noopener' : undefined}
+            >
+              <span class="contact__label">{channel.label}</span>
+              <span class="contact__value">{channel.value}</span>
+              <span class="contact__arrow" aria-hidden="true">
+                →
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="contact__foot m-rise">
+      <span class:list={['status', { 'status--closed': !site.available }]}>
+        <span class="status__dot" aria-hidden="true"></span>
+        {site.available ? site.availableFrom : 'Fully booked, enquiries still welcome'}
+      </span>
+      <span class="muted contact__time">{site.responseTime}</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .contact__title {
+    margin-top: clamp(1.25rem, 3vw, 2rem);
+    max-width: 15ch;
+  }
+
+  .contact__lede {
+    color: var(--deep-muted);
+    margin-top: clamp(1.25rem, 3vw, 1.75rem);
+    max-width: 50ch;
+  }
+
+  .contact__channels {
+    list-style: none;
+    padding: 0;
+    margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+  }
+
+  .contact__row {
+    border-top: 1px solid var(--deep-line);
+  }
+
+  .contact__row:last-child {
+    border-bottom: 1px solid var(--deep-line);
+  }
+
+  .contact__link {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.3rem 1.5rem;
+    padding-block: clamp(1.15rem, 2.5vw, 1.7rem);
+    transition: color 0.4s var(--ease), padding-inline 0.5s var(--ease);
+  }
+
+  .contact__label {
+    grid-column: 1;
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .contact__value {
+    grid-column: 1;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--deep-muted);
+    transition: color 0.4s var(--ease);
+  }
+
+  .contact__arrow {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    font-size: var(--step-2);
+    transition: transform 0.5s var(--ease);
+  }
+
+  .contact__link:hover {
+    color: var(--accent-2);
+    padding-inline: 0.65rem;
+  }
+
+  .contact__link:hover .contact__value {
+    color: var(--accent-2);
+  }
+
+  .contact__link:hover .contact__arrow {
+    transform: translateX(8px);
+  }
+
+  .contact__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem 1.5rem;
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  .contact__time {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  @media (min-width: 40rem) {
+    .contact__link {
+      grid-template-columns: minmax(0, 12rem) 1fr auto;
+    }
+
+    .contact__value {
+      grid-column: 2;
+    }
+
+    .contact__arrow {
+      grid-column: 3;
+      grid-row: 1;
+    }
+  }
+</style>

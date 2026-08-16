@@ -1,0 +1,702 @@
+---
+/**
+ * Traceability and stock console.
+ *
+ * Models the three rules that actually make this domain hard, taken from the
+ * real system rather than invented for the page:
+ *   1. Fungible stock is consumed FIFO within a bin, grade and tariff group.
+ *   2. Compliance status propagates: an output is only compliant if every
+ *      input consumed to make it was compliant.
+ *   3. The consumption record is the lineage, so any output can be walked
+ *      back to the purchases behind it.
+ */
+
+const lots = [
+  { id: 'LOT-1041', qty: 1200, status: 'MSNR', src: 'PO-8891', date: '02 JAN' },
+  { id: 'LOT-1042', qty: 800, status: 'MSNR', src: 'PO-8903', date: '09 JAN' },
+  { id: 'LOT-1043', qty: 640, status: 'NON-MSNR', src: 'PO-8910', date: '14 JAN' },
+  { id: 'LOT-1044', qty: 1500, status: 'MSNR', src: 'PO-8925', date: '21 JAN' },
+];
+
+const totalQty = lots.reduce((sum, lot) => sum + lot.qty, 0);
+---
+
+<div class="trace ticked" data-trace>
+  <span class="scanline" aria-hidden="true"></span>
+
+  <div class="trace__bar">
+    <div class="trace__brand">
+      <span class="trace__code">TRC</span>
+      <span class="trace__name">Stock &amp; traceability console</span>
+    </div>
+    <div class="trace__bin">
+      <span class="trace__bin-k">BIN</span>
+      <span class="trace__bin-v">A-01 · SMR 20 · HS 4001.22</span>
+    </div>
+  </div>
+
+  <div class="trace__grid">
+    {/* --- stock ledger --------------------------------------------------- */}
+    <section class="trace__pane" aria-label="Stock ledger">
+      <header class="trace__pane-head">
+        <span class="trace__pane-title">Stock ledger</span>
+        <span class="trace__balance">
+          <span data-balance>{totalQty.toLocaleString()}</span> kg
+        </span>
+      </header>
+
+      <ol class="trace__lots">
+        {
+          lots.map((lot, i) => (
+            <li
+              class="trace__lot"
+              data-lot={lot.id}
+              data-qty={lot.qty}
+              data-status={lot.status}
+              data-src={lot.src}
+              style={`--i:${i}`}
+            >
+              <span class="trace__lot-bar" aria-hidden="true" />
+              <div class="trace__lot-main">
+                <span class="trace__lot-id">{lot.id}</span>
+                <span class="trace__lot-meta">
+                  {lot.date} · {lot.src}
+                </span>
+              </div>
+              <div class="trace__lot-right">
+                <span class:list={['trace__chip', lot.status === 'MSNR' ? 'is-ok' : 'is-warn']}>
+                  {lot.status}
+                </span>
+                <span class="trace__lot-qty">
+                  <span data-lot-qty>{lot.qty.toLocaleString()}</span> kg
+                </span>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+
+      <p class="trace__hint">
+        Oldest first. Consumption follows receipt order, not selection.
+      </p>
+    </section>
+
+    {/* --- process ---------------------------------------------------------- */}
+    <section class="trace__pane" aria-label="Processing">
+      <header class="trace__pane-head">
+        <span class="trace__pane-title">Process run</span>
+        <span class="trace__pane-sub">FIFO preview</span>
+      </header>
+
+      <div class="trace__field">
+        <label class="trace__label" for="trace-qty">Quantity to consume (kg)</label>
+        <div class="trace__stepper">
+          <button class="trace__step" type="button" data-qty-step="-200" aria-label="Less">−</button>
+          <input class="trace__input" id="trace-qty" type="number" value="1600" min="0" step="100" />
+          <button class="trace__step" type="button" data-qty-step="200" aria-label="More">+</button>
+        </div>
+      </div>
+
+      <div class="trace__preview" data-preview>
+        <p class="trace__preview-head">Will consume</p>
+        <ul class="trace__plan" data-plan></ul>
+      </div>
+
+      <div class="trace__result" data-result>
+        <div class="trace__result-row">
+          <span class="trace__result-k">Output status</span>
+          <span class="trace__chip" data-out-status>MSNR</span>
+        </div>
+        <p class="trace__rule" data-rule></p>
+      </div>
+
+      <div class="trace__actions">
+        <button class="btn" type="button" data-run>
+          Run process
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+        <button class="link" type="button" data-reset>Reset</button>
+      </div>
+    </section>
+
+    {/* --- lineage ---------------------------------------------------------- */}
+    <section class="trace__pane trace__pane--wide" aria-label="Lineage" data-lineage-pane hidden>
+      <header class="trace__pane-head">
+        <span class="trace__pane-title">Lineage</span>
+        <span class="trace__pane-sub" data-lineage-of></span>
+      </header>
+      <ol class="trace__lineage" data-lineage></ol>
+    </section>
+  </div>
+
+  <div class="trace__toast" data-toast role="status" aria-live="polite"></div>
+</div>
+
+<style>
+  .trace {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .trace__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    padding: 0.9rem clamp(1rem, 2.5vw, 1.5rem);
+    background: var(--deep);
+    color: var(--deep-text);
+  }
+
+  .trace__brand {
+    display: flex;
+    align-items: baseline;
+    gap: 0.65rem;
+  }
+
+  .trace__code {
+    font-family: var(--font-mono);
+    font-size: var(--step-0);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .trace__name {
+    font-family: var(--font-display);
+    font-size: var(--step--1);
+    font-weight: 500;
+  }
+
+  .trace__bin {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  .trace__bin-k {
+    letter-spacing: 0.14em;
+    color: var(--deep-muted);
+  }
+
+  .trace__bin-v {
+    color: var(--deep-text);
+  }
+
+  .trace__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .trace__pane {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .trace__pane-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .trace__pane-title {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .trace__pane-sub {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--faint);
+  }
+
+  .trace__balance {
+    font-family: var(--font-mono);
+    font-size: var(--step-0);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  /* --- lots --------------------------------------------------------------- */
+  .trace__lots {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .trace__lot {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0.7rem 0.7rem 1rem;
+    border-bottom: 1px solid var(--line-soft);
+    transition: background 0.4s var(--ease), opacity 0.4s var(--ease);
+  }
+
+  /* Left rail marks a lot the current plan will draw from. */
+  .trace__lot-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--grad);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.4s var(--ease);
+  }
+
+  .trace__lot.is-planned .trace__lot-bar {
+    transform: scaleY(1);
+  }
+
+  .trace__lot.is-planned {
+    background: var(--accent-soft);
+  }
+
+  .trace__lot.is-empty {
+    opacity: 0.4;
+  }
+
+  .trace__lot-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .trace__lot-id {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    font-weight: 500;
+  }
+
+  .trace__lot-meta {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--faint);
+  }
+
+  .trace__lot-right {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .trace__lot-qty {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+    min-width: 5.5rem;
+    text-align: right;
+  }
+
+  .trace__chip {
+    padding: 0.16rem 0.45rem;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.06em;
+    border: 1px solid;
+  }
+
+  .trace__chip.is-ok {
+    color: #0a6b4a;
+    border-color: rgba(10, 107, 74, 0.3);
+    background: rgba(10, 107, 74, 0.08);
+  }
+
+  .trace__chip.is-warn {
+    color: #9a5b00;
+    border-color: rgba(154, 91, 0, 0.3);
+    background: rgba(154, 91, 0, 0.08);
+  }
+
+  .trace__hint {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--faint);
+  }
+
+  /* --- process ------------------------------------------------------------ */
+  .trace__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .trace__label {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .trace__stepper {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-width: 16rem;
+  }
+
+  .trace__step {
+    width: 2.5rem;
+    border: 0;
+    background: var(--surface-2);
+    color: var(--ink);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s var(--ease);
+  }
+
+  .trace__step:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .trace__input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.6rem 0.7rem;
+    border: 0;
+    border-inline: 1px solid var(--line);
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+
+  .trace__input::-webkit-outer-spin-button,
+  .trace__input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .trace__preview-head {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .trace__plan {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  /* `:global()` is required on every rule below. These rows are created with
+     document.createElement at runtime, so they never receive Astro's scoped
+     style attribute and a plain `.trace__plan li` selector would not match. */
+  .trace__plan :global(li) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 0.6rem;
+    background: var(--surface-2);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 3px 3px 0;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  .trace__plan :global(li.is-short) {
+    border-left-color: #9a5b00;
+    color: #9a5b00;
+  }
+
+  .trace__result {
+    padding: 0.85rem;
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+  }
+
+  .trace__result-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .trace__result-k {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .trace__rule {
+    margin-top: 0.5rem;
+    font-size: var(--step--2);
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .trace__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: auto;
+  }
+
+  /* --- lineage ------------------------------------------------------------ */
+  .trace__pane--wide[hidden] {
+    display: none;
+  }
+
+  .trace__lineage {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .trace__lineage :global(li) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.85rem;
+    padding: 0.55rem 0.7rem;
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  .trace__lineage :global(.lin__arrow) {
+    color: var(--accent);
+  }
+
+  /* --- toast --------------------------------------------------------------- */
+  .trace__toast {
+    position: absolute;
+    left: 50%;
+    bottom: 1rem;
+    transform: translate(-50%, 1.5rem);
+    padding: 0.6rem 1.1rem;
+    background: var(--deep);
+    color: var(--deep-text);
+    border-radius: 100px;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+    z-index: 5;
+  }
+
+  .trace__toast.is-shown {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  @media (min-width: 56rem) {
+    .trace__grid {
+      grid-template-columns: 1.15fr 1fr;
+    }
+
+    .trace__pane + .trace__pane {
+      border-left: 1px solid var(--line-soft);
+    }
+
+    .trace__pane--wide {
+      grid-column: 1 / -1;
+      border-left: 0 !important;
+    }
+
+    .trace__lineage {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+
+<script>
+  type Lot = { id: string; qty: number; status: string; src: string };
+  type PlanRow = { lot: Lot; take: number };
+
+  const root = document.querySelector<HTMLElement>('[data-trace]');
+
+  if (root) {
+    const lotEls = Array.from(root.querySelectorAll<HTMLElement>('[data-lot]'));
+    const qtyInput = root.querySelector<HTMLInputElement>('#trace-qty')!;
+    const planEl = root.querySelector<HTMLElement>('[data-plan]')!;
+    const balanceEl = root.querySelector<HTMLElement>('[data-balance]')!;
+    const outStatusEl = root.querySelector<HTMLElement>('[data-out-status]')!;
+    const ruleEl = root.querySelector<HTMLElement>('[data-rule]')!;
+    const runBtn = root.querySelector<HTMLButtonElement>('[data-run]')!;
+    const lineagePane = root.querySelector<HTMLElement>('[data-lineage-pane]')!;
+    const lineageEl = root.querySelector<HTMLElement>('[data-lineage]')!;
+    const lineageOf = root.querySelector<HTMLElement>('[data-lineage-of]')!;
+    const toast = root.querySelector<HTMLElement>('[data-toast]')!;
+
+    const seed: Lot[] = lotEls.map((el) => ({
+      id: el.dataset.lot!,
+      qty: Number(el.dataset.qty),
+      status: el.dataset.status!,
+      src: el.dataset.src!,
+    }));
+
+    let lots: Lot[] = seed.map((lot) => ({ ...lot }));
+    let outputSeq = 2001;
+
+    const fmt = (n: number) => n.toLocaleString();
+
+    /** FIFO: walk lots in receipt order, taking what is left to take. */
+    function buildPlan(want: number): { rows: PlanRow[]; short: number } {
+      let left = want;
+      const rows: PlanRow[] = [];
+      for (const lot of lots) {
+        if (left <= 0 || lot.qty <= 0) continue;
+        const take = Math.min(lot.qty, left);
+        rows.push({ lot, take });
+        left -= take;
+      }
+      return { rows, short: Math.max(0, left) };
+    }
+
+    let toastTimer: number | undefined;
+    function say(message: string) {
+      toast.textContent = message;
+      toast.classList.add('is-shown');
+      clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove('is-shown'), 2600);
+    }
+
+    function renderLots() {
+      for (const el of lotEls) {
+        const lot = lots.find((l) => l.id === el.dataset.lot)!;
+        el.querySelector<HTMLElement>('[data-lot-qty]')!.textContent = fmt(lot.qty);
+        el.classList.toggle('is-empty', lot.qty <= 0);
+      }
+      balanceEl.textContent = fmt(lots.reduce((sum, l) => sum + l.qty, 0));
+    }
+
+    function renderPlan() {
+      const want = Math.max(0, Number(qtyInput.value) || 0);
+      const { rows, short } = buildPlan(want);
+
+      for (const el of lotEls) {
+        el.classList.toggle(
+          'is-planned',
+          rows.some((r) => r.lot.id === el.dataset.lot),
+        );
+      }
+
+      planEl.innerHTML = '';
+      for (const row of rows) {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${row.lot.id}</span><span>${fmt(row.take)} kg</span>`;
+        planEl.appendChild(li);
+      }
+      if (short > 0) {
+        const li = document.createElement('li');
+        li.className = 'is-short';
+        li.innerHTML = `<span>Short of stock</span><span>${fmt(short)} kg</span>`;
+        planEl.appendChild(li);
+      }
+      if (rows.length === 0 && short === 0) {
+        planEl.innerHTML = '<li><span>Nothing selected</span><span>0 kg</span></li>';
+      }
+
+      // Compliance propagates: one non-compliant input taints the output.
+      const tainted = rows.some((r) => r.lot.status !== 'MSNR');
+      outStatusEl.textContent = rows.length === 0 ? 'N/A' : tainted ? 'NON-MSNR' : 'MSNR';
+      outStatusEl.className = `trace__chip ${rows.length === 0 ? '' : tainted ? 'is-warn' : 'is-ok'}`;
+      ruleEl.textContent = tainted
+        ? 'A non-compliant lot falls inside the FIFO window, so the output inherits its status. Order of receipt decides this, not choice.'
+        : 'Every lot inside the FIFO window is compliant, so the output is too.';
+
+      runBtn.disabled = rows.length === 0 || short > 0;
+    }
+
+    function run() {
+      const want = Math.max(0, Number(qtyInput.value) || 0);
+      const { rows, short } = buildPlan(want);
+      if (rows.length === 0 || short > 0) return;
+
+      for (const row of rows) row.lot.qty -= row.take;
+
+      const tainted = rows.some((r) => r.lot.status !== 'MSNR');
+      const outId = `OUT-${outputSeq++}`;
+
+      lineageOf.textContent = `${outId} · ${fmt(want)} kg · ${tainted ? 'NON-MSNR' : 'MSNR'}`;
+      lineageEl.innerHTML = '';
+      for (const row of rows) {
+        const li = document.createElement('li');
+        li.innerHTML =
+          `<span>${outId}</span><span class="lin__arrow">←</span>` +
+          `<span>${row.lot.id}</span><span>${fmt(row.take)} kg</span>` +
+          `<span>${row.lot.src}</span><span>${row.lot.status}</span>`;
+        lineageEl.appendChild(li);
+      }
+      lineagePane.hidden = false;
+
+      renderLots();
+      renderPlan();
+      say(`${outId} created from ${rows.length} lot${rows.length > 1 ? 's' : ''}`);
+    }
+
+    function reset() {
+      lots = seed.map((lot) => ({ ...lot }));
+      outputSeq = 2001;
+      qtyInput.value = '1600';
+      lineagePane.hidden = true;
+      renderLots();
+      renderPlan();
+      say('Console reset');
+    }
+
+    qtyInput.addEventListener('input', renderPlan);
+
+    root.querySelectorAll<HTMLButtonElement>('[data-qty-step]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const next = (Number(qtyInput.value) || 0) + Number(btn.dataset.qtyStep);
+        qtyInput.value = String(Math.max(0, next));
+        renderPlan();
+      });
+    });
+
+    runBtn.addEventListener('click', run);
+    root.querySelector('[data-reset]')?.addEventListener('click', reset);
+
+    renderLots();
+    renderPlan();
+  }
+</script>

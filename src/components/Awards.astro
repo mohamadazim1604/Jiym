@@ -1,0 +1,150 @@
+---
+import SplitText from './SplitText.astro';
+import { site } from '../data/site';
+---
+
+<section class="section awards" id="awards">
+  <div class="container">
+    <header class="awards__head">
+      <p class="eyebrow m-rise">Recognition</p>
+      <h2 class="h2">
+        <SplitText text="Judged by people with" />
+        <SplitText text="no reason to be kind." offset={4} italic />
+      </h2>
+      <p class="lede m-rise">
+        The Malaysia Technology Expo is the region's largest innovation event. Its International
+        Innovation Awards and Public Service Innovation Asia tracks are both judged there.
+      </p>
+    </header>
+
+    <ol class="awards__list">
+      {
+        site.awards.map((award, i) => (
+          <li class="awards__row m-rise" style={`--i:${i % 3}`}>
+            <span class="index awards__k">{String(i + 1).padStart(2, '0')}</span>
+
+            <div class="awards__main">
+              <h3 class:list={['awards__title', { 'is-top': award.tier === 'top' }]}>
+                {award.title}
+              </h3>
+              <p class="awards__prog">{award.programme}</p>
+            </div>
+
+            <div class="awards__meta">
+              <span class="awards__project">{award.project}</span>
+              <span class="awards__event">{award.event}</span>
+            </div>
+
+            <span class="awards__rule" aria-hidden="true" />
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .awards__head {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    max-width: 48rem;
+  }
+
+  .awards__list {
+    list-style: none;
+    padding: 0;
+    margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+  }
+
+  .awards__row {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.45rem 1.1rem;
+    align-items: baseline;
+    padding-block: clamp(1.25rem, 2.5vw, 1.9rem);
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .awards__row:last-child {
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  /* The row's own hairline redraws itself in the gradient on hover. */
+  .awards__rule {
+    position: absolute;
+    inset-inline: 0;
+    top: -1px;
+    height: 1px;
+    background: var(--grad);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.7s var(--ease);
+  }
+
+  .awards__row:hover .awards__rule {
+    transform: scaleX(1);
+  }
+
+  .awards__k {
+    grid-row: 1;
+  }
+
+  .awards__main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .awards__title {
+    font-size: var(--step-3);
+  }
+
+  /* Only the top award gets the gradient. Marking all four would mark none. */
+  .awards__title.is-top {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .awards__prog {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--muted);
+  }
+
+  .awards__meta {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .awards__project {
+    font-size: var(--step--1);
+    font-weight: 500;
+  }
+
+  .awards__event {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  @media (min-width: 52rem) {
+    .awards__row {
+      grid-template-columns: auto 1fr auto;
+      gap: 2rem;
+    }
+
+    .awards__meta {
+      grid-column: 3;
+      align-items: flex-end;
+      text-align: right;
+    }
+  }
+</style>

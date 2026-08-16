@@ -1,0 +1,135 @@
+---
+import SplitText from './SplitText.astro';
+import { site } from '../data/site';
+---
+
+<section class="section proc" id="process">
+  <div class="container">
+    <header class="proc__head">
+      <p class="eyebrow m-rise">How it runs</p>
+      <h2 class="h2">
+        <SplitText text="No silence," />
+        <SplitText text="no surprise invoices." offset={2} italic />
+      </h2>
+      <p class="lede m-rise">
+        The two things anyone is actually afraid of when they hire an engineer they have not worked
+        with before. Each stage removes one of them.
+      </p>
+    </header>
+
+    {/* Sticky pile-up. Each step parks under the header and the next slides
+        over it, so the sequence is felt rather than read. Pure position:
+        sticky, no scroll listener. */}
+    <ol class="proc__stack">
+      {
+        site.process.map((step, i) => (
+          <li class="proc__item" style={`--i:${i}`}>
+            <article class="proc__card m-blur ticked">
+              <div class="proc__num">
+                <span class="index">{String(i + 1).padStart(2, '0')}</span>
+                <span class="proc__slash" aria-hidden="true">
+                  /
+                </span>
+                <span class="proc__total">{String(site.process.length).padStart(2, '0')}</span>
+              </div>
+
+              <div class="proc__body">
+                <h3 class="proc__title">{step.title}</h3>
+                <p class="proc__text">{step.body}</p>
+              </div>
+            </article>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .proc__head {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    max-width: 46rem;
+  }
+
+  .proc__stack {
+    list-style: none;
+    padding: 0;
+    margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+  }
+
+  .proc__item {
+    position: sticky;
+    /* Each card parks slightly lower than the one before, so the pile shows
+       its own edges like a stack rather than one flat surface. */
+    top: calc(6rem + var(--i) * 1.15rem);
+    padding-bottom: clamp(0.85rem, 2vw, 1.25rem);
+  }
+
+  .proc__card {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(1rem, 2.5vw, 2rem);
+    padding: clamp(1.5rem, 3.5vw, 2.5rem);
+    min-height: clamp(13rem, 24vw, 16rem);
+    align-content: center;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 -20px 40px -32px rgba(10, 13, 18, 0.35);
+  }
+
+  .proc__num {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  .proc__slash,
+  .proc__total {
+    color: var(--faint);
+  }
+
+  .proc__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .proc__title {
+    font-size: var(--step-3);
+  }
+
+  .proc__text {
+    color: var(--muted);
+    max-width: 54ch;
+    text-wrap: pretty;
+  }
+
+  /* The last card inverts, so the sequence resolves rather than just stopping,
+     and it hands off to the dark contact block below. */
+  .proc__item:last-child .proc__card {
+    background: var(--deep);
+    border-color: var(--deep);
+    color: var(--deep-text);
+  }
+
+  .proc__item:last-child .proc__text {
+    color: var(--deep-muted);
+  }
+
+  .proc__item:last-child .proc__slash,
+  .proc__item:last-child .proc__total {
+    color: var(--deep-muted);
+  }
+
+  @media (min-width: 46rem) {
+    .proc__card {
+      grid-template-columns: auto 1fr;
+      align-items: start;
+    }
+  }
+</style>

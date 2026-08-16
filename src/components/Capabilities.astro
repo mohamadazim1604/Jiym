@@ -1,0 +1,170 @@
+---
+import SplitText from './SplitText.astro';
+import { site } from '../data/site';
+---
+
+{/* Replaces the old scrolling type band. Four problem shapes, each with a mono
+    code, rendered as an instrument row rather than decoration. */}
+<section class="section caps" id="capabilities">
+  <div class="container">
+    <header class="caps__head">
+      <p class="eyebrow m-rise">Capabilities</p>
+      <h2 class="h2">
+        <SplitText text="Four problem shapes." />
+        <SplitText text="Everything else is a variation." offset={3} italic />
+      </h2>
+    </header>
+
+    <ol class="caps__grid">
+      {
+        site.services.map((service, i) => (
+          <li class="caps__card sheen m-rise" style={`--i:${i}`}>
+            <div class="caps__top">
+              <span class="caps__code">{service.code}</span>
+              <span class="caps__num">{String(i + 1).padStart(2, '0')}</span>
+            </div>
+
+            <h3 class="caps__title">{service.title}</h3>
+            <p class="caps__summary">{service.summary}</p>
+
+            <ul class="caps__list">
+              {service.includes.map((item) => (
+                <li class="caps__item">{item}</li>
+              ))}
+            </ul>
+
+            <span class="caps__bar" aria-hidden="true" />
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .caps__head {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    max-width: 46rem;
+  }
+
+  .caps__grid {
+    list-style: none;
+    padding: 0;
+    margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--line-soft);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .caps__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: clamp(1.5rem, 3vw, 2.1rem);
+    background: var(--surface);
+    overflow: hidden;
+    transition: background 0.45s var(--ease);
+  }
+
+  .caps__card:hover {
+    background: var(--surface-2);
+  }
+
+  .caps__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* The three-letter code is the whole personality of this card. */
+  .caps__code {
+    font-family: var(--font-mono);
+    font-size: var(--step-1);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .caps__num {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--faint);
+  }
+
+  .caps__title {
+    font-size: var(--step-2);
+  }
+
+  .caps__summary {
+    font-size: var(--step--1);
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .caps__list {
+    list-style: none;
+    padding: 0;
+    margin: 0.35rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .caps__item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-2);
+    padding-top: 0.45rem;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .caps__item::before {
+    content: '';
+    width: 3px;
+    height: 3px;
+    background: var(--accent);
+    flex: none;
+    transform: translateY(-2px);
+  }
+
+  /* Accent bar that grows along the bottom edge on hover. */
+  .caps__bar {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--grad);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.6s var(--ease);
+  }
+
+  .caps__card:hover .caps__bar {
+    transform: scaleX(1);
+  }
+
+  @media (min-width: 44rem) {
+    .caps__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .caps__grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>

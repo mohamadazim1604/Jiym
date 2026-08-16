@@ -1,0 +1,153 @@
+---
+import '@fontsource-variable/space-grotesk/wght.css';
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource-variable/jetbrains-mono/wght.css';
+import '../styles/global.css';
+
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+}
+
+const { title, description = site.description, image = '/og.png', type = 'website' } = Astro.props;
+
+const pageTitle = title ? `${title} · ${site.name}` : `${site.name} · ${site.role}, ${site.location}`;
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url);
+const socialImage = new URL(image, Astro.site ?? site.url);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  jobTitle: site.role,
+  description: site.description,
+  url: site.url,
+  email: site.email,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Kuala Lumpur',
+    addressCountry: 'MY',
+  },
+  knowsAbout: ['Traceability systems', 'Stock management', 'Transaction systems', 'Booking systems'],
+  sameAs: site.socials.map((s) => s.href),
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="theme-color" content="#eceef2" />
+
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={socialImage} />
+    <meta property="og:locale" content="en_MY" />
+    <meta property="og:site_name" content={site.name} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImage} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(schema)} />
+
+    <!-- Marks the document as scripted before first paint, so the motion
+         fallback can safely hide elements it is about to reveal. Without JS
+         this class never lands and all content stays visible. -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- Ambient field: a drifting technical grid under a slow colour mesh.
+         Fixed, behind everything, and never still. -->
+    <div class="field" aria-hidden="true">
+      <div class="field__grid"></div>
+      <div class="field__mesh"></div>
+    </div>
+
+    <div class="progress" aria-hidden="true"><div class="progress__bar m-progress"></div></div>
+
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      /**
+       * Motion fallback for browsers without scroll-driven animations.
+       * Chrome, Edge and Safari never run this.
+       */
+      const supportsScrollDriven =
+        typeof CSS !== 'undefined' && CSS.supports?.('animation-timeline: view()');
+      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (!supportsScrollDriven && !prefersReduced) {
+        const targets = document.querySelectorAll(
+          '[data-motion], .m-rise, .m-blur, .m-wipe, .m-zoom, .m-rule, .m-count, .m-scale',
+        );
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              entry.target.classList.add('is-in');
+              observer.unobserve(entry.target);
+            }
+          },
+          { rootMargin: '0px 0px -10% 0px', threshold: 0.05 },
+        );
+
+        for (const target of targets) observer.observe(target);
+      }
+    </script>
+
+    <style>
+      /* The field sits at z-index 0, so anything carrying content has to be
+         raised above it explicitly. */
+      main,
+      :global(.site-footer) {
+        position: relative;
+        z-index: 1;
+      }
+
+      .progress {
+        position: fixed;
+        inset: 0 0 auto 0;
+        height: 2px;
+        z-index: 60;
+        pointer-events: none;
+      }
+
+      .progress__bar {
+        height: 100%;
+        background: var(--grad);
+        transform-origin: left;
+        transform: scaleX(0);
+      }
+    </style>
+  </body>
+</html>

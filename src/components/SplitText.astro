@@ -1,0 +1,44 @@
+---
+/**
+ * Splits a string into per-word mask boxes so each word can slide up from
+ * behind a hard edge on a stagger.
+ *
+ * The split happens at BUILD TIME, the browser receives finished markup and
+ * ships no JavaScript to do it. That is the whole reason this effect is cheap
+ * enough to use as liberally as it is here.
+ */
+interface Props {
+  text: string;
+  /**
+   * `load` fires on page load (for content already above the fold).
+   * `scroll` welds the stagger to scroll position.
+   */
+  mode?: 'load' | 'scroll';
+  /** Index to start the stagger from, so two blocks can share one cascade. */
+  offset?: number;
+  /** Delay before a `load` cascade begins, in ms. */
+  delay?: number;
+  class?: string;
+  italic?: boolean;
+}
+
+const { text, mode = 'scroll', offset = 0, delay = 0, class: className = '', italic = false } = Astro.props;
+
+const words = text.split(/\s+/).filter(Boolean);
+---
+
+<span
+  class:list={['split', mode === 'load' ? 'split--load' : 'split--scroll', className, { accentuate: italic }]}
+  style={`--base:${delay}ms`}
+  data-motion={mode === 'scroll' ? '' : undefined}
+>
+  {
+    words.map((word, i) => (
+      <span class="split__w">
+        <span class="split__i" style={`--i:${i + offset}`}>
+          {word}
+        </span>
+      </span>
+    ))
+  }
+</span>
