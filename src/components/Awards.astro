@@ -3,58 +3,47 @@ import { Image } from 'astro:assets';
 import SplitText from './SplitText.astro';
 import BlockField from './BlockField.astro';
 import Icon from './Icon.astro';
-import trophy from '../assets/mte-best-innovation-trophy.jpeg';
-import ceremony from '../assets/mte-award-ceremony.jpeg';
-import wall from '../assets/mte-award-winners-wall.jpg';
+import certBest from '../assets/cert-best-innovation.jpg';
+import certGold01 from '../assets/cert-gold-01.jpg';
+import certGold02 from '../assets/cert-gold-02.jpg';
 import { site } from '../data/site';
 
 /**
- * Evidence for the list above. A row of award titles is a claim; the trophy
- * with the category engraved on it is the receipt, which is the whole reason
- * these are worth the page weight.
+ * The certificates, in the same order as the awards list above: the Best
+ * Innovation Award first, then the two Golds.
  *
- * Each is shown whole rather than cropped to a shared shape, so a tall
- * trophy shot and a wide group shot simply sit at different heights.
+ * Each was lifted straight out of its PDF. Every one of those PDFs is a single
+ * scanned page stored as a DCTDecode stream, which is a JPEG verbatim, so the
+ * image could be extracted losslessly with no rasteriser in the toolchain.
+ * They are shown as documents, not as links: there is nothing to open.
  */
-const proof = [
-  {
-    src: trophy,
-    caption: 'Best Innovation Award · IIA',
-    alt: 'The International Innovation Awards Best Innovation Award trophy from the 25th Malaysia Technology Expo.',
-  },
-  {
-    src: ceremony,
-    caption: 'Gold Award presentation · MTE',
-    alt: 'The project team on stage at the Malaysia Technology Expo holding Gold Award certificates and medals.',
-  },
-  {
-    src: wall,
-    caption: 'Award winners’ display · MTE',
-    alt: 'The Malaysia Technology Expo award winners display wall, with the trophies on plinths.',
-  },
+const certificates = [
+  { src: certBest, label: 'Best Innovation Award' },
+  { src: certGold01, label: 'Gold Award' },
+  { src: certGold02, label: 'Gold Award' },
 ];
 ---
 
 <section class="section awards has-field" id="awards">
-  <BlockField variant="rings" depth="3rem" />
+  <BlockField variant="video" src="/media/abstract.mp4" />
 
   <div class="container">
     <header class="awards__head">
-      <p class="section__no m-rise" data-no="03">Recognition</p>
+      <p class="section__no" data-no="03">Recognition</p>
       <h2 class="h2">
-        <SplitText text="Judged by people with" />
-        <SplitText text="no reason to be kind." offset={4} italic />
+        <SplitText text="Recognition" />
+        <SplitText text="and achievement." offset={1} italic />
       </h2>
-      <p class="lede m-rise">
-        The Malaysia Technology Expo is the region's largest innovation event. Its International
-        Innovation Awards and Public Service Innovation Asia tracks are both judged there.
+      <p class="lede">
+        Work delivered at the Malaysia Technology Expo, judged against entries from across the
+        region. Listed here with the certificates behind them.
       </p>
     </header>
 
     <ol class="awards__list">
       {
         site.awards.map((award, i) => (
-          <li class="awards__row m-rise" style={`--i:${i % 3}`}>
+          <li class="awards__row" style={`--i:${i % 3}`}>
             <span class="awards__k">
               <span class="awards__glyph" data-tier={award.tier}>
                 <Icon name="award" size="1.1rem" />
@@ -80,28 +69,35 @@ const proof = [
       }
     </ol>
 
-    <ul class="proof">
-      {
-        proof.map((item, i) => (
-          <li class="proof__item m-rise" style={`--i:${i}`}>
-            <figure class="proof__figure ticked glow">
-              <Image
-                class="proof__img"
-                src={item.src}
-                alt={item.alt}
-                widths={[380, 560, 760]}
-                sizes="(min-width: 46rem) 30vw, 92vw"
-                format="webp"
-                quality={80}
-                loading="lazy"
-                decoding="async"
-              />
-              <figcaption class="proof__caption">{item.caption}</figcaption>
-            </figure>
-          </li>
-        ))
-      }
-    </ul>
+    <div class="certs">
+      <p class="certs__head">Certificates</p>
+
+      <ul class="certs__grid">
+        {
+          certificates.map((cert) => (
+            <li class="certs__item">
+              <figure class="certs__figure">
+                <Image
+                  class="certs__img"
+                  src={cert.src}
+                  alt={`${cert.label} certificate, Malaysia Technology Expo`}
+                  width={620}
+                  widths={[300, 460, 620]}
+                  sizes="(min-width: 46rem) 30vw, 92vw"
+                  format="webp"
+                  quality={82}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <figcaption class="certs__meta">
+                  <span class="certs__label">{cert.label}</span>
+                </figcaption>
+              </figure>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -197,12 +193,12 @@ const proof = [
     font-size: var(--step-3);
   }
 
-  /* Only the top award gets the gradient. Marking all four would mark none. */
+  /* The top award is no longer set in the gradient. Blue display type in the
+     middle of a list of otherwise white titles read as a mis-styled link
+     rather than as emphasis, and the rosette beside it already marks which
+     one it is. */
   .awards__title.is-top {
-    background: var(--grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--ink);
   }
 
   .awards__prog {
@@ -231,78 +227,78 @@ const proof = [
     color: var(--faint);
   }
 
-  /* --- proof gallery ------------------------------------------------------ */
+  /* --- certificates -------------------------------------------------------- */
 
-  .proof {
+  .certs {
+    margin-top: clamp(1.75rem, 3.5vw, 2.75rem);
+    padding-top: clamp(1.5rem, 3vw, 2.25rem);
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .certs__head {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .certs__grid {
     list-style: none;
     padding: 0;
-    margin: clamp(1.75rem, 3.5vw, 2.75rem) 0 0;
+    margin: 1rem 0 0;
     display: grid;
     grid-template-columns: 1fr;
     gap: clamp(0.85rem, 2vw, 1.25rem);
   }
 
-  /* Every photograph is shown whole, at its own aspect ratio.
-     The previous version forced each one into a fixed grid cell with
-     `object-fit: cover` and scaled it on hover, which cropped hard into the
-     middle of the frame and blew the pixels up past their source resolution —
-     that zoomed, soft, jagged look. Nothing here crops or magnifies now:
-     the figure takes the shape of its picture, and the picture is only ever
-     rendered smaller than the file it came from. */
-  .proof__figure {
-    position: relative;
+  .certs__figure {
     margin: 0;
     overflow: hidden;
     border: 1px solid var(--line-soft);
     border-radius: var(--radius);
     background-color: var(--surface);
     transition:
-      border-color 0.55s var(--ease),
-      transform 0.55s var(--ease),
-      box-shadow 0.55s var(--ease);
+      border-color 0.5s var(--ease),
+      transform 0.5s var(--ease),
+      box-shadow 0.5s var(--ease);
   }
 
-  .proof__figure:hover {
-    transform: translateY(-5px);
+  .certs__figure:hover {
+    transform: translateY(-4px);
     border-color: var(--accent-line);
     box-shadow:
-      0 30px 60px -40px var(--shadow),
-      0 0 50px -26px rgba(91, 145, 255, 0.5);
+      0 28px 56px -40px var(--shadow),
+      0 0 44px -26px rgba(91, 145, 255, 0.45);
   }
 
-  .proof__img {
+  /* Certificates are documents: shown whole, never cropped. They all share
+     one ratio already, so nothing has to be forced to match. */
+  .certs__img {
     display: block;
     width: 100%;
-    /* Intrinsic. No aspect-ratio, no object-fit, no crop. */
     height: auto;
-    /* Only a light hold-back: these are bright daylight photographs on a
-       near-black page. Heavier grading was reading as muddy rather than as
-       part of the palette. */
-    filter: saturate(0.86) brightness(0.94);
-    transition: filter 0.7s var(--ease);
+    filter: saturate(0.9) brightness(0.92);
+    transition: filter 0.6s var(--ease);
   }
 
-  .proof__figure:hover .proof__img {
+  .certs__figure:hover .certs__img {
     filter: none;
   }
 
-  .proof__caption {
-    display: block;
-    padding: 0.75rem 0.9rem 0.85rem;
+  .certs__meta {
+    padding: 0.75rem 0.9rem;
     border-top: 1px solid var(--line-soft);
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    letter-spacing: 0.08em;
-    color: var(--muted);
+  }
+
+  .certs__label {
+    font-size: var(--step--1);
+    color: var(--ink-2);
   }
 
   @media (min-width: 46rem) {
-    /* Three columns of equal width, each item hugging the top of its cell so
-       differing picture heights simply stagger instead of being stretched to
-       match one another. */
-    .proof {
+    .certs__grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      align-items: start;
     }
   }
 

@@ -14,26 +14,25 @@ const channels: { label: string; value: string; href: string; external: boolean;
 ---
 
 <section class="section on-ink contact has-field" id="contact">
-  <BlockField variant="horizon" tone="deep" depth="3rem" />
-  <span class="scanline" aria-hidden="true"></span>
+  <BlockField variant="video" tone="deep" />
 
   <div class="container">
-    <p class="section__no m-rise" data-no="05">Next step</p>
+    <p class="section__no" data-no="05">Contact</p>
 
     <h2 class="display contact__title">
-      <SplitText text="Tell me what is" />
-      <SplitText text="slowing you down." offset={3} italic />
+      <SplitText text="Get in" />
+      <SplitText text="touch." offset={2} italic />
     </h2>
 
-    <p class="lede contact__lede m-rise">
-      A short call, no charge and no pitch deck. If I am not the right person for it I will say so
-      and point you at someone who is.
+    <p class="lede contact__lede">
+      A short call, no charge. Tell me what you need and I will tell you straight whether I am the
+      right person to build it.
     </p>
 
     <ul class="contact__channels">
       {
         channels.map((channel, i) => (
-          <li class="contact__row m-rise" style={`--i:${i}`}>
+          <li class="contact__row" style={`--i:${i}`}>
             <a
               class="contact__link"
               href={channel.href}
@@ -51,12 +50,19 @@ const channels: { label: string; value: string; href: string; external: boolean;
                 →
               </span>
             </a>
+
+            {/* Beside the link, never over it: the row still works as a plain
+                anchor if the Clipboard API is unavailable. */}
+            <button class="copy" type="button" data-copy={channel.value} aria-label={`Copy ${channel.label}`}>
+              <Icon name="blocks" size="0.8rem" />
+              <span class="copy__text">Copy</span>
+            </button>
           </li>
         ))
       }
     </ul>
 
-    <div class="contact__foot m-rise">
+    <div class="contact__foot">
       <span class:list={['status', { 'status--closed': !site.available }]}>
         <span class="status__dot" aria-hidden="true"></span>
         {site.available ? site.availableFrom : 'Fully booked, enquiries still welcome'}
@@ -89,6 +95,9 @@ const channels: { label: string; value: string; href: string; external: boolean;
   }
 
   .contact__row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     border-top: 1px solid var(--deep-line);
   }
 
@@ -96,7 +105,51 @@ const channels: { label: string; value: string; href: string; external: boolean;
     border-bottom: 1px solid var(--deep-line);
   }
 
+  /* Quiet until the row is hovered or the button itself is focused. */
+  .copy {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--deep-line);
+    border-radius: 3px;
+    background: transparent;
+    color: var(--deep-muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0;
+    transition:
+      opacity 0.35s var(--ease),
+      color 0.35s var(--ease),
+      border-color 0.35s var(--ease);
+  }
+
+  .contact__row:hover .copy,
+  .copy:focus-visible {
+    opacity: 1;
+  }
+
+  .copy:hover,
+  .copy.is-copied {
+    opacity: 1;
+    color: var(--accent-2);
+    border-color: var(--accent-2);
+  }
+
+  /* No hover on touch, so it simply stays visible. */
+  @media (hover: none) {
+    .copy {
+      opacity: 1;
+    }
+  }
+
   .contact__link {
+    flex: 1;
+    min-width: 0;
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;

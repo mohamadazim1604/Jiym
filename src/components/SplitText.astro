@@ -1,7 +1,10 @@
 ---
 /**
- * Splits a string into per-word mask boxes so each word can slide up from
- * behind a hard edge on a stagger.
+ * Splits a string into mask boxes so each unit can slide up from behind a hard
+ * edge on a stagger. A unit is a whole word by default, or a single letter when
+ * `chars` is set — the letter split is reserved for the hero headline, where
+ * the tighter stagger is what makes the line read as typeset rather than
+ * animated.
  *
  * The split happens at BUILD TIME, the browser receives finished markup and
  * ships no JavaScript to do it. That is the whole reason this effect is cheap
@@ -20,25 +23,55 @@ interface Props {
   delay?: number;
   class?: string;
   italic?: boolean;
+  /** Split to individual letters instead of whole words. */
+  chars?: boolean;
 }
 
-const { text, mode = 'scroll', offset = 0, delay = 0, class: className = '', italic = false } = Astro.props;
+const {
+  text,
+  mode = 'scroll',
+  offset = 0,
+  delay = 0,
+  class: className = '',
+  italic = false,
+  chars = false,
+} = Astro.props;
 
 const words = text.split(/\s+/).filter(Boolean);
+
+/* Numbered here rather than in the template, because both numbers have to keep
+   counting ACROSS word boundaries: `--i` so the stagger runs through the line
+   as one cascade instead of restarting at every space, and `--p` so an accent
+   gradient can be sampled at the right point of the line by each letter. */
+let n = 0;
+const boxes = words.map((word) =>
+  (chars ? Array.from(word) : [word]).map((unit) => ({ unit, n: n++ }))
+);
+const last = Math.max(n - 1, 1);
 ---
 
 <span
-  class:list={['split', mode === 'load' ? 'split--load' : 'split--scroll', className, { accentuate: italic }]}
-  style={`--base:${delay}ms`}
-  data-motion={mode === 'scroll' ? '' : undefined}
+  class:list={[
+    'split',
+    mode === 'load' ? 'split--load' : 'split--scroll',
+    { 'split--chars': chars },
+    className,
+    { accentuate: italic },
+  ]}
+  style={`--base:${delay}ms;--n:${n}`}
 >
   {
-    words.map((word, i) => (
+    boxes.map((units) => (
       <Fragment>
         <span class="split__w">
-          <span class="split__i" style={`--i:${i + offset}`}>
-            {word}
-          </span>
+          {units.map(({ unit, n }) => (
+            <span
+              class="split__i"
+              style={`--i:${n + offset};--p:${((n / last) * 100).toFixed(2)}%`}
+            >
+              {unit}
+            </span>
+          ))}
         </span>
         {/* A REAL space after every word box, not a margin.
             The boxes are inline-block, so a margin would space them apart for

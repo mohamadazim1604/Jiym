@@ -3,6 +3,7 @@ import Icon from './Icon.astro';
 import { site, whatsappHref } from '../data/site';
 
 const links = [
+  { label: 'Home', href: '/#home', id: 'home' },
   { label: 'Systems', href: '/#systems', id: 'systems' },
   { label: 'Capabilities', href: '/#capabilities', id: 'capabilities' },
   { label: 'Recognition', href: '/#awards', id: 'awards' },
@@ -34,7 +35,7 @@ const links = [
     </nav>
 
     <div class="header__end">
-      <a class="header__cta" href={whatsappHref} target="_blank" rel="noopener">
+      <a class="header__cta magnetic" href={whatsappHref} target="_blank" rel="noopener">
         <span>Start a project</span>
         <Icon name="arrow" size="0.9rem" class="header__cta-arrow" />
       </a>

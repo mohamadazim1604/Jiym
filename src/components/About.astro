@@ -4,7 +4,7 @@ import SplitText from './SplitText.astro';
 import BlockField from './BlockField.astro';
 import Icon from './Icon.astro';
 import type { IconName } from './Icon.astro';
-import portrait from '../assets/azim-portrait.jpeg';
+import portrait from '../assets/azim-mirror.jpg';
 import { site } from '../data/site';
 
 /* One glyph per stack group, in the order the groups are declared. */
@@ -12,70 +12,202 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
 ---
 
 <section class="section section--alt about has-field" id="about">
-  <BlockField variant="halo" depth="3.5rem" />
+  <BlockField variant="video" src="/media/section.mp4" />
 
   <div class="container about__grid">
-    {/* Portrait. A real face is a trust signal: someone is deciding whether to
-        hand money to a stranger.
+    {/* One photograph, shown whole. A real face is a trust signal when someone
+        is deciding whether to hand money to a stranger.
 
         Image rather than a plain img tag: it resizes, converts and hashes the
         source at build time and writes the intrinsic width and height in, so
-        the block reserves its space before the file arrives.
+        the block reserves its space before the file arrives. No crop and no
+        aspect-ratio: the frame takes the shape of the picture, and the widest
+        variant asked for stays well inside what the source can fill. */}
+    <div class="plate" data-plate>
+      <figure class="about__figure">
+        <Image
+          class="about__img"
+          src={portrait}
+          alt={`${site.name}, ${site.role.toLowerCase()} based in ${site.location}`}
+          width={860}
+          widths={[380, 620, 860]}
+          sizes="(min-width: 56rem) 21rem, 92vw"
+          format="webp"
+          quality={82}
+          loading="lazy"
+          decoding="async"
+        />
 
-        widths never goes above 720, because the source file IS 720x1080 —
-        asking the build for a 1000px variant upscaled it, and an upscale is
-        exactly what blurry looks like. The frame is capped to 22rem to match,
-        so the widest variant still covers a 2x display one for one. */}
-    <figure class="about__figure m-wipe ticked">
-      <Image
-        class="about__img m-zoom"
-        src={portrait}
-        alt={`${site.name}, ${site.role.toLowerCase()} based in ${site.location}`}
-        widths={[360, 540, 720]}
-        sizes="(min-width: 56rem) 22rem, 92vw"
-        format="webp"
-        quality={82}
-        loading="lazy"
-        decoding="async"
-      />
-    </figure>
+        {/* Everything below is decoration over the photograph. It is all
+            aria-hidden: the readout repeats the role and location that the
+            surrounding prose already states, so a screen reader gains
+            nothing from hearing it twice. */}
+        <span class="plate__ring" aria-hidden="true"></span>
+        <span class="plate__grid" aria-hidden="true"></span>
+
+        <span class="plate__corner plate__corner--tl" aria-hidden="true"></span>
+        <span class="plate__corner plate__corner--tr" aria-hidden="true"></span>
+        <span class="plate__corner plate__corner--bl" aria-hidden="true"></span>
+        <span class="plate__corner plate__corner--br" aria-hidden="true"></span>
+
+        <span class="plate__readout" aria-hidden="true">
+          <span class="plate__row">
+            <span class="plate__dot"></span>
+            {site.role}
+          </span>
+          <span class="plate__row plate__row--sub">{site.location}</span>
+        </span>
+      </figure>
+    </div>
 
     <div class="about__text">
-      <p class="section__no m-rise" data-no="04">About</p>
+      <p class="section__no" data-no="04">About</p>
 
       <h2 class="h2 about__heading">
-        <SplitText text="You deal with me," />
-        <SplitText text="start to finish." offset={3} italic />
+        <SplitText text="The person you" />
+        <SplitText text="actually deal with." offset={3} italic />
       </h2>
 
       {
         site.about.body.map((paragraph, i) => (
-          <p class="about__para m-rise" style={`--i:${i}`}>
+          <p class="about__para" style={`--i:${i}`}>
             {paragraph}
           </p>
         ))
       }
 
-      <dl class="about__stack">
+      {/* Stack explorer. The groups are real buttons and every chip stays in
+          the DOM at all times, so nothing here is hidden from a crawler or a
+          reader with no JavaScript: without the script all four panels are
+          simply shown at once, which is exactly what it used to be. */}
+      <div class="stack" data-stack>
+        <div class="stack__tabs" role="tablist" aria-label="Technology stack">
+          {
+            site.about.stack.map((group, i) => (
+              <button
+                class="stack__tab"
+                type="button"
+                role="tab"
+                id={`stack-tab-${i}`}
+                aria-controls={`stack-panel-${i}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+              >
+                <Icon name={groupGlyphs[i] ?? 'stack'} size="0.9rem" />
+                {group.group}
+              </button>
+            ))
+          }
+        </div>
+
         {
           site.about.stack.map((group, i) => (
-            <div class="about__group m-rise" style={`--i:${i}`}>
-              <dt class="about__group-name">
-                <Icon name={groupGlyphs[i] ?? 'stack'} size="0.95rem" />
-                {group.group}
-              </dt>
-              <dd class="about__group-items">
-                {group.items.map((item) => (
-                  <span class="about__chip">{item}</span>
-                ))}
-              </dd>
+            <div
+              class="stack__panel"
+              role="tabpanel"
+              id={`stack-panel-${i}`}
+              aria-labelledby={`stack-tab-${i}`}
+            >
+              {group.items.map((item, n) => (
+                <span class="about__chip" style={`--n:${n}`}>
+                  {item}
+                </span>
+              ))}
             </div>
           ))
         }
-      </dl>
+      </div>
     </div>
   </div>
 </section>
+
+<script>
+  /**
+   * Pointer tilt for the portrait plate.
+   *
+   * Only where there is a real pointer: on touch there is no hover to drive
+   * it, and a plate left at whatever angle the last tap produced looks
+   * broken. Coalesced to one frame, and held to 6 degrees, past which it
+   * stops reading as a panel catching the light.
+   */
+  /**
+   * Stack explorer.
+   *
+   * Progressive enhancement, deliberately: the markup ships every panel
+   * visible, and only once this runs does it mark itself ready and collapse
+   * to one at a time. If the script never runs, the section degrades to the
+   * plain list of all four groups it used to be rather than to nothing.
+   *
+   * Arrow keys move between tabs, which is what the tablist role promises a
+   * keyboard user it will do.
+   */
+  const stack = document.querySelector<HTMLElement>('[data-stack]');
+
+  if (stack) {
+    const tabButtons = [...stack.querySelectorAll<HTMLButtonElement>('.stack__tab')];
+    const panels = [...stack.querySelectorAll<HTMLElement>('.stack__panel')];
+
+    const select = (index: number, focus = false) => {
+      tabButtons.forEach((tab, i) => {
+        const on = i === index;
+        tab.setAttribute('aria-selected', on ? 'true' : 'false');
+        tab.tabIndex = on ? 0 : -1;
+        panels[i].hidden = !on;
+      });
+      if (focus) tabButtons[index].focus();
+    };
+
+    tabButtons.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(i));
+      tab.addEventListener('keydown', (event) => {
+        const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) return;
+        event.preventDefault();
+        select((i + step + tabButtons.length) % tabButtons.length, true);
+      });
+    });
+
+    stack.dataset.stack = 'ready';
+    select(0);
+  }
+
+  const plate = document.querySelector<HTMLElement>('[data-plate]');
+  const figure = plate?.querySelector<HTMLElement>('.about__figure');
+  const canTilt =
+    matchMedia('(hover: hover) and (pointer: fine)').matches &&
+    !matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (plate && figure && canTilt) {
+    const MAX = 6;
+    let queued = false;
+    let next: { rx: number; ry: number } | null = null;
+
+    const flush = () => {
+      queued = false;
+      if (!next) return;
+      figure.style.setProperty('--rx', `${next.rx.toFixed(2)}deg`);
+      figure.style.setProperty('--ry', `${next.ry.toFixed(2)}deg`);
+      next = null;
+    };
+
+    plate.addEventListener('pointermove', (event) => {
+      const box = plate.getBoundingClientRect();
+      next = {
+        // Away from the cursor vertically, toward it horizontally: how a real
+        // panel would pivot on its centre.
+        rx: (0.5 - (event.clientY - box.top) / box.height) * MAX * 2,
+        ry: ((event.clientX - box.left) / box.width - 0.5) * MAX * 2,
+      };
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(flush);
+    });
+
+    plate.addEventListener('pointerleave', () => {
+      figure.style.setProperty('--rx', '0deg');
+      figure.style.setProperty('--ry', '0deg');
+    });
+  }
+</script>
 
 <style>
   .about__grid {
@@ -85,18 +217,183 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
     align-items: start;
   }
 
+  /* An angle custom property has to be registered before it can be animated:
+     to the transition engine a plain --spin is just a string, and a conic
+     gradient fed a string simply snaps. */
+  @property --spin {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+  }
+
+  @keyframes plate-spin {
+    to { --spin: 360deg; }
+  }
+
+  @keyframes plate-corner {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 1; }
+  }
+
+  @keyframes plate-blink {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(63, 220, 255, 0.55); }
+    70% { opacity: 0.55; box-shadow: 0 0 0 6px rgba(63, 220, 255, 0); }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .plate__ring {
+      animation: plate-spin 8s linear infinite;
+    }
+
+    .plate__corner {
+      animation: plate-corner 3.2s ease-in-out infinite;
+    }
+
+    .plate__corner--tr { animation-delay: 0.4s; }
+    .plate__corner--br { animation-delay: 0.8s; }
+    .plate__corner--bl { animation-delay: 1.2s; }
+
+    .plate__dot {
+      animation: plate-blink 2.4s ease-out infinite;
+    }
+  }
+
+  /* ---------------------------------------------------------------- plate */
+  /* The portrait is framed as a live readout rather than as a photograph:
+     a rotating gradient ring, HUD corner brackets, a fine grid over the
+     image, one scan pass, and a status line.
+
+     None of it is scroll-driven. Everything either runs on its own clock or
+     answers the pointer, which is the distinction that matters here: nothing
+     on this page hides content until you scroll to it. */
+  .plate {
+    perspective: 1200px;
+  }
+
+  /* Rotating gradient ring, drawn as a conic fill masked to its own 1px edge.
+     Two nested gradients would be the alternative; this is one element. */
+  .plate__ring {
+    position: absolute;
+    inset: -1px;
+    z-index: 2;
+    border-radius: var(--radius);
+    padding: 1px;
+    background: conic-gradient(
+      from var(--spin, 0deg),
+      transparent 0deg,
+      var(--accent) 60deg,
+      var(--accent-2) 130deg,
+      transparent 200deg,
+      transparent 360deg
+    );
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    pointer-events: none;
+  }
+
+  /* Fine rule work over the photograph, faded out through the middle so it
+     never sits across the face. */
+  .plate__grid {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-image:
+      linear-gradient(to right, rgba(233, 237, 245, 0.14) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(233, 237, 245, 0.14) 1px, transparent 1px);
+    background-size: 2.75rem 2.75rem;
+    mask-image: radial-gradient(ellipse 62% 48% at 50% 42%, transparent 30%, #000 100%);
+    -webkit-mask-image: radial-gradient(ellipse 62% 48% at 50% 42%, transparent 30%, #000 100%);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .plate__corner {
+    position: absolute;
+    z-index: 3;
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--accent-2);
+    pointer-events: none;
+  }
+
+  .plate__corner--tl { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
+  .plate__corner--tr { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
+  .plate__corner--bl { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
+  .plate__corner--br { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
+
+  .plate__readout {
+    position: absolute;
+    left: 0.9rem;
+    right: 0.9rem;
+    bottom: 0.9rem;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--deep) 72%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  .plate__row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--ink);
+  }
+
+  .plate__row--sub {
+    color: var(--muted);
+    letter-spacing: 0.14em;
+  }
+
+  .plate__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    flex: none;
+  }
+
   .about__figure {
     position: relative;
     margin: 0;
     overflow: hidden;
+    transform: perspective(1200px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
     border-radius: var(--radius);
     background: var(--surface);
     border: 1px solid var(--line-soft);
+    box-shadow: 0 24px 50px -34px var(--shadow);
+    transition:
+      transform 0.7s var(--ease),
+      border-color 0.7s var(--ease),
+      box-shadow 0.7s var(--ease);
   }
 
-  /* Intrinsic 2:3, uncropped and never magnified. Forcing it to 4:5 with
-     `object-fit: cover` cut into the frame and scaled what was left up past
-     the source resolution, which is where the softness came from. */
+  .about__figure:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent-line);
+    box-shadow:
+      0 34px 60px -38px var(--shadow),
+      0 0 46px -26px rgba(91, 145, 255, 0.45);
+  }
+
+  /* Intrinsic. No crop, no forced ratio, and never rendered wider than the
+     source can fill, which is where softness comes from. */
   .about__img {
     display: block;
     width: 100%;
@@ -107,17 +404,6 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
 
   .about__figure:hover .about__img {
     filter: none;
-  }
-
-  /* Grades the foot of the portrait into the page so the caption has
-     something to sit on and the crop does not end on a hard edge. */
-  .about__figure::after {
-    content: '';
-    position: absolute;
-    inset: auto 0 0 0;
-    height: 45%;
-    pointer-events: none;
-    background: linear-gradient(to top, var(--bg) 2%, transparent 92%);
   }
 
   .about__text {
@@ -136,44 +422,82 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
     text-wrap: pretty;
   }
 
-  .about__stack {
-    margin: 1.25rem 0 0;
+  .stack {
+    margin-top: 1.5rem;
+  }
+
+  .stack__tabs {
     display: flex;
-    flex-direction: column;
-  }
-
-  .about__group {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.45rem;
-    padding-block: 0.9rem;
-    border-top: 1px solid var(--line-soft);
-  }
-
-  .about__group:last-child {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding-bottom: 0.9rem;
     border-bottom: 1px solid var(--line-soft);
   }
 
-  .about__group-name {
-    display: flex;
+  .stack__tab {
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.45rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 3px;
+    background: transparent;
+    color: var(--muted);
     font-family: var(--font-mono);
     font-size: var(--step--2);
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--muted);
+    cursor: pointer;
+    transition:
+      color 0.35s var(--ease),
+      border-color 0.35s var(--ease),
+      background-color 0.35s var(--ease);
   }
 
-  .about__group-name :global(.icon) {
+  .stack__tab :global(.icon) {
     color: var(--accent-2);
+    opacity: 0.7;
+    transition: opacity 0.35s var(--ease);
   }
 
-  .about__group-items {
-    margin: 0;
+  .stack__tab:hover {
+    color: var(--ink);
+    border-color: var(--accent-line);
+  }
+
+  .stack__tab[aria-selected='true'] {
+    color: var(--ink);
+    border-color: var(--accent-line);
+    background-color: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+
+  .stack__tab[aria-selected='true'] :global(.icon) {
+    opacity: 1;
+  }
+
+  .stack__panel {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.3rem;
+    gap: 0.35rem;
+    padding-top: 1rem;
+  }
+
+  /* Only set once the script has taken over. Without JavaScript every panel
+     stays visible, which is the no-JS state this degrades to. */
+  [data-stack='ready'] .stack__panel[hidden] {
+    display: none;
+  }
+
+  @keyframes chip-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    [data-stack='ready'] .stack__panel:not([hidden]) .about__chip {
+      animation: chip-in 0.45s var(--ease) both;
+      animation-delay: calc(var(--n, 0) * 45ms);
+    }
   }
 
   .about__chip {
@@ -188,16 +512,10 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
 
   @media (min-width: 56rem) {
     .about__grid {
-      /* Fixed 22rem rather than a fraction, so the portrait is never asked to
-         render wider than its source file can sharply fill. */
-      grid-template-columns: 22rem minmax(0, 1fr);
+      /* Fixed rather than a fraction, so the first photograph is never asked
+         to render wider than its source file can sharply fill. */
+      grid-template-columns: 21rem minmax(0, 1fr);
       gap: clamp(2.5rem, 6vw, 5rem);
-    }
-
-    .about__group {
-      grid-template-columns: 8rem 1fr;
-      gap: 1.25rem;
-      align-items: start;
     }
   }
 </style>

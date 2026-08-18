@@ -13,16 +13,16 @@ const stageGlyphs: IconName[] = ['model', 'slice', 'blocks', 'handover'];
 {/* Parallax is off here: the cards inside are sticky, and a backdrop moving
     at a second rate behind a pinned card just reads as drift. */}
 <section class="section section--alt proc has-field" id="process">
-  <BlockField variant="aurora" parallax={false} />
+  <BlockField variant="aurora" />
 
   <div class="container">
     <header class="proc__head">
-      <p class="section__no m-rise" data-no="04">How it runs</p>
+      <p class="section__no" data-no="04">How it runs</p>
       <h2 class="h2">
         <SplitText text="No silence," />
         <SplitText text="no surprise invoices." offset={2} italic />
       </h2>
-      <p class="lede m-rise">
+      <p class="lede">
         The two things anyone is actually afraid of when they hire a developer they have not worked
         with before. Each stage removes one of them.
       </p>
@@ -35,7 +35,7 @@ const stageGlyphs: IconName[] = ['model', 'slice', 'blocks', 'handover'];
       {
         site.process.map((step, i) => (
           <li class="proc__item" style={`--i:${i}`}>
-            <article class="proc__card m-blur ticked glow">
+            <article class="proc__card ticked glow">
               <div class="proc__num">
                 <span class="proc__glyph">
                   <Icon name={stageGlyphs[i] ?? 'blocks'} size="1.25rem" />

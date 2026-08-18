@@ -10,9 +10,9 @@ export const site = {
   name: 'Mohamad Azim',
   fullName: 'Mohamad Azim bin Hasnul Azlan',
   role: 'Full-Stack Developer',
-  tagline: 'I build the software a business actually runs on.',
+  tagline: 'Digital systems your business runs on.',
   description:
-    'Full-stack developer in Kuala Lumpur, available for freelance work. Web applications, internal tools, dashboards and APIs, built end to end on .NET Core and Angular. Award-winning work at the Malaysia Technology Expo.',
+    'Full-stack developer in Kuala Lumpur, available for freelance work. Web platforms, mobile apps, e-commerce and the API integrations behind them, built end to end. Award-winning work at the Malaysia Technology Expo.',
   location: 'Kuala Lumpur, Malaysia',
 
   /* ---------------------------------------------------------------- contact */
@@ -87,32 +87,32 @@ export const site = {
    */
   services: [
     {
-      code: 'APP',
-      title: 'Web applications',
+      code: 'WEB',
+      title: 'Web platforms',
       summary:
         'A complete product, built end to end. Accounts, roles and permissions, the screens your users work in, and the API and database underneath them.',
-      includes: ['Full-stack build', 'Authentication and roles', 'Responsive interfaces', 'Deployment and handover'],
+      includes: ['Full-stack build', 'Authentication and roles', 'Responsive interfaces', 'Deployment and support'],
     },
     {
-      code: 'OPS',
-      title: 'Internal tools',
+      code: 'APP',
+      title: 'Mobile apps',
       summary:
-        'The admin systems a team actually runs its day on. Replacing the spreadsheet, the shared inbox and the paper form with one place where the record is kept.',
-      includes: ['Admin and back-office', 'Workflow and approvals', 'Scheduling and bookings', 'Document generation'],
+        'The same product, in the pocket of every customer. Built to feel native on the phone and to share one source of truth with everything else you run.',
+      includes: ['Cross-platform builds', 'Offline and sync', 'Push notifications', 'Store submission'],
+    },
+    {
+      code: 'SHOP',
+      title: 'E-commerce',
+      summary:
+        'Storefronts that take money reliably. Catalogue, cart and checkout wired to real payment and delivery providers, with the back office to run it.',
+      includes: ['Catalogue and checkout', 'Payment gateways', 'Order management', 'Stock and fulfilment'],
     },
     {
       code: 'API',
-      title: 'APIs and integrations',
+      title: 'Integrations',
       summary:
         'Services other software can rely on, and the work of making two systems that were never designed to talk to each other do it anyway.',
       includes: ['REST API design', 'Third-party integration', 'Data import and migration', 'Documentation'],
-    },
-    {
-      code: 'DAT',
-      title: 'Data and reporting',
-      summary:
-        'A schema that holds up under real use, and the dashboards and exports that turn what it records into something a manager can act on.',
-      includes: ['Database design', 'Dashboards', 'Reports and exports', 'Audit trails'],
     },
   ],
 
@@ -141,13 +141,13 @@ export const site = {
     /* The portrait is imported directly in About.astro so the build can
        optimise it; it is not a path in here. */
     body: [
-      'I build the software organisations run their day on: web applications, internal tools, dashboards and the APIs behind them. Front end through to database, one person, start to finish.',
-      'I led the technical development of a national traceability platform across an Angular front end and a .NET Core API. It has to stay correct under audit years after a record was written, and it took three awards at the Malaysia Technology Expo. Alongside it I have shipped scheduling, reporting and internal operations tools.',
-      'I take on a small number of freelance projects at a time, which is deliberate: you deal with me directly from the first call through to handover, and your project is never queued behind five others.',
+      'Three years building production systems that organisations depend on every day: web platforms, mobile applications, e-commerce, and the integrations behind them. Front end through to database, delivered end to end.',
+      'As technical lead on a national traceability platform, I delivered an Angular front end and a .NET Core API built to stay accurate under audit years after a record is written. The project won three awards at the Malaysia Technology Expo. Scheduling, reporting and operations systems have followed for other organisations since.',
+      'Every project runs the same way: direct contact with the person building it, from the first call through to final delivery. No account managers, no handovers between teams, and never more than a few clients at a time.',
     ],
     stack: [
       { group: 'Backend', items: ['.NET Core Web API', 'C#', 'Entity Framework', 'SQL Server', 'MySQL'] },
-      { group: 'Frontend', items: ['Angular 16', 'TypeScript', 'RxJS', 'Angular Material', 'Bootstrap 5'] },
+      { group: 'Frontend', items: ['Angular ', 'TypeScript', 'RxJS', 'Angular Material', 'Bootstrap 5'] },
       { group: 'Patterns', items: ['JWT and claims auth', 'HTTP interceptors', 'Route guards', 'Role-scoped UI'] },
       { group: 'Practice', items: ['Git and GitHub', 'Code review', 'API integration', 'Database design'] },
     ],

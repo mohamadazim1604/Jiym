@@ -7,7 +7,7 @@ code: 'BKG'
 summary: 'Room booking with participants, QR check-in and attendance reporting, scoped to an organisation chart of divisions and departments.'
 outcome: 'Availability became a screen instead of a phone call, and attendance became a report instead of a paper sheet.'
 services: ['Product design', 'Angular development', 'API integration', 'Reporting']
-stack: ['Angular 16', 'TypeScript', 'Angular Material', 'Bootstrap 5', 'SweetAlert2']
+stack: ['Angular ', 'TypeScript', 'Angular Material', 'Bootstrap 5', 'SweetAlert2']
 domains: ['Booking', 'Attendance', 'Reporting']
 role: 'Full-stack developer'
 demo: 'demo-booking'
@@ -45,7 +45,7 @@ door without an account.
 
 ## What I built
 
-An Angular 16 application on Angular Material, structured around four
+An Angular  application on Angular Material, structured around four
 entities that stay separate: rooms, bookings, participants and attendance.
 
 **Availability as the primary screen.** A grid of rooms against time slots

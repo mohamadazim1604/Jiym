@@ -17,6 +17,8 @@ export type IconName =
   | 'stock'
   | 'transaction'
   | 'booking'
+  | 'mobile'
+  | 'cart'
   | 'award'
   | 'model'
   | 'slice'
@@ -59,6 +61,11 @@ const paths: Record<IconName, string> = {
   transaction: 'M4 8h13l-3-3m6 11H7l3 3M4 8l3-3M20 16l-3 3',
   // Scheduling with a confirmed slot.
   booking: 'M4 6.5h16v13H4v-13ZM4 10.5h16M8 3.5v4M16 3.5v4m-6.5 8 2 2 4-4',
+  // A handset, for work that ships to a phone.
+  mobile:
+    'M7.5 3h9a1.5 1.5 0 0 1 1.5 1.5v15a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19.5v-15A1.5 1.5 0 0 1 7.5 3Zm2.75 14.5h3.5',
+  // A basket on wheels, for anything that takes a payment.
+  cart: 'M3 4.5h2.3l2.2 10h9.3l2.2-7.5H6.6M9.75 20a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Zm7 0a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z',
   // Recognition: a rosette.
   award: 'M12 3.5a5.25 5.25 0 1 0 0 10.5 5.25 5.25 0 0 0 0-10.5ZM8.75 13.25 7.5 20.5l4.5-2.25 4.5 2.25-1.25-7.25',
   // Model first: the schema itself.

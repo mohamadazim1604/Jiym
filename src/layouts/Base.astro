@@ -77,13 +77,6 @@ const schema = {
     <meta name="twitter:image" content={socialImage} />
 
     <script type="application/ld+json" is:inline set:html={JSON.stringify(schema)} />
-
-    <!-- Marks the document as scripted before first paint, so the motion
-         fallback can safely hide elements it is about to reveal. Without JS
-         this class never lands and all content stays visible. -->
-    <script is:inline>
-      document.documentElement.classList.add('js');
-    </script>
   </head>
 
   <body>
@@ -107,8 +100,6 @@ const schema = {
       <div class="field__mesh"></div>
     </div>
 
-    <div class="progress" aria-hidden="true"><div class="progress__bar m-progress"></div></div>
-
     <Header />
     <main id="main">
       <slot />
@@ -117,32 +108,6 @@ const schema = {
 
     <script>
       const reducedQuery = matchMedia('(prefers-reduced-motion: reduce)');
-
-      /**
-       * Motion fallback for browsers without scroll-driven animations.
-       * Chrome, Edge and Safari never run this.
-       */
-      const supportsScrollDriven =
-        typeof CSS !== 'undefined' && CSS.supports?.('animation-timeline: view()');
-
-      if (!supportsScrollDriven && !reducedQuery.matches) {
-        const targets = document.querySelectorAll(
-          '[data-motion], .m-rise, .m-blur, .m-wipe, .m-zoom, .m-rule, .m-count, .m-scale, .m-left, .m-right, .m-tilt',
-        );
-
-        const observer = new IntersectionObserver(
-          (entries) => {
-            for (const entry of entries) {
-              if (!entry.isIntersecting) continue;
-              entry.target.classList.add('is-in');
-              observer.unobserve(entry.target);
-            }
-          },
-          { rootMargin: '0px 0px -10% 0px', threshold: 0.05 },
-        );
-
-        for (const target of targets) observer.observe(target);
-      }
 
       /**
        * Ambient video. Decoding a looping clip forever is the most expensive
@@ -169,6 +134,78 @@ const schema = {
         reducedQuery.addEventListener('change', settleVideo);
         document.addEventListener('visibilitychange', settleVideo);
         settleVideo();
+      }
+
+      /**
+       * Magnetic pull on the primary actions. The element leans toward the
+       * cursor by a fraction of the distance from its own centre, capped at
+       * 6px so it never looks like it is running away from the pointer.
+       * Pointer-only, and coalesced to one frame like the lamp below.
+       */
+      const magnets = document.querySelectorAll<HTMLElement>('.magnetic');
+
+      if (magnets.length && !reducedQuery.matches && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        const CAP = 6;
+        let magQueued = false;
+        let magNext: { el: HTMLElement; x: number; y: number } | null = null;
+
+        const magFlush = () => {
+          magQueued = false;
+          if (!magNext) return;
+          magNext.el.style.setProperty('--mag-x', `${magNext.x.toFixed(1)}px`);
+          magNext.el.style.setProperty('--mag-y', `${magNext.y.toFixed(1)}px`);
+          magNext = null;
+        };
+
+        for (const magnet of magnets) {
+          magnet.addEventListener('pointermove', (event) => {
+            const box = magnet.getBoundingClientRect();
+            const dx = event.clientX - (box.left + box.width / 2);
+            const dy = event.clientY - (box.top + box.height / 2);
+            magNext = {
+              el: magnet,
+              x: Math.max(-CAP, Math.min(CAP, dx * 0.25)),
+              y: Math.max(-CAP, Math.min(CAP, dy * 0.35)),
+            };
+            if (magQueued) return;
+            magQueued = true;
+            requestAnimationFrame(magFlush);
+          });
+
+          magnet.addEventListener('pointerleave', () => {
+            magnet.style.setProperty('--mag-x', '0px');
+            magnet.style.setProperty('--mag-y', '0px');
+          });
+        }
+      }
+
+      /**
+       * Copy to clipboard. Any [data-copy] button puts its value on the
+       * clipboard and confirms in place for a moment. The contact details are
+       * still ordinary links beside it, so nothing depends on this working.
+       */
+      for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+        button.addEventListener('click', async () => {
+          const value = button.dataset.copy;
+          if (!value) return;
+
+          try {
+            await navigator.clipboard.writeText(value);
+          } catch {
+            // Denied permission or an insecure origin. Say nothing rather
+            // than claiming a copy that did not happen.
+            return;
+          }
+
+          button.classList.add('is-copied');
+          const label = button.querySelector('.copy__text');
+          if (label) label.textContent = 'Copied';
+
+          setTimeout(() => {
+            button.classList.remove('is-copied');
+            if (label) label.textContent = 'Copy';
+          }, 1600);
+        });
       }
 
       /**
@@ -214,21 +251,6 @@ const schema = {
       :global(.site-footer) {
         position: relative;
         z-index: 1;
-      }
-
-      .progress {
-        position: fixed;
-        inset: 0 0 auto 0;
-        height: 2px;
-        z-index: 60;
-        pointer-events: none;
-      }
-
-      .progress__bar {
-        height: 100%;
-        background: var(--grad);
-        transform-origin: left;
-        transform: scaleX(0);
       }
     </style>
   </body>

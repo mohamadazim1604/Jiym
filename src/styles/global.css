@@ -189,6 +189,14 @@ select {
   background-color: var(--bg-alt);
 }
 
+/* A video backdrop veils itself in its block's own ground. On an alternate
+   section that ground is --bg-alt, and without this the veil would fade to
+   --bg instead and print a visibly wrong-coloured band across the top and
+   bottom of the block. */
+.section--alt .bfield {
+  --bf-ground: var(--bg-alt);
+}
+
 /* A numbered plate above each section heading. Reading "03 / RECOGNITION"
    tells you where you are in the page and how much of it is left, which a
    bare eyebrow never did. */
@@ -279,10 +287,35 @@ h4 {
    the gradient, which is the modern equivalent of the same move: one clause
    lifts out of the line without changing its weight or size. */
 .accentuate {
-  background: var(--grad);
+  background: linear-gradient(
+    100deg,
+    var(--accent) 0%,
+    var(--accent-2) 25%,
+    #ffffff 40%,
+    var(--accent-2) 55%,
+    var(--accent) 80%,
+    var(--accent-2) 100%
+  );
+  background-size: 250% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+@keyframes accent-flow {
+  from { background-position: 0% 50%; }
+  to { background-position: 200% 50%; }
+}
+
+/* The sweep is for word-split and unsplit accents only. A letter-split accent
+   (the hero headline) holds its ramp still and carries a travelling highlight
+   instead — see `char-gleam`. Excluded here rather than overridden later so
+   there is only ever one rule deciding what an accent phrase animates. */
+@media (prefers-reduced-motion: no-preference) {
+  .accentuate:not(.split--chars),
+  .accentuate:not(.split--chars) .split__i {
+    animation: accent-flow 9s linear infinite;
+  }
 }
 
 /* When an accent phrase is word-split for the reveal animation, the gradient
@@ -290,7 +323,16 @@ h4 {
    on the parent has no text of its own left to clip to once every word lives
    inside its own inline-block, so the whole line renders invisible. */
 .accentuate .split__i {
-  background: var(--grad);
+  background: linear-gradient(
+    100deg,
+    var(--accent) 0%,
+    var(--accent-2) 25%,
+    #ffffff 40%,
+    var(--accent-2) 55%,
+    var(--accent) 80%,
+    var(--accent-2) 100%
+  );
+  background-size: 250% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -551,6 +593,19 @@ h4 {
   --glow-a: 0.16;
 }
 
+/* Magnetic pull. The element leans a few pixels toward the cursor while it is
+   over it, driven by --mag-x/--mag-y from the script in Base.astro. The travel
+   is capped hard: past about 6px it stops feeling like weight and starts
+   feeling like the button is dodging the pointer. */
+.magnetic {
+  translate: var(--mag-x, 0px) var(--mag-y, 0px);
+  transition: translate 0.35s var(--ease);
+}
+
+.magnetic:hover {
+  transition-duration: 0.12s;
+}
+
 /* Hover lift for anything that should feel like a physical panel. */
 .lift {
   transition:
@@ -732,10 +787,7 @@ h4 {
 
 .bfield {
   position: absolute;
-  /* Overscanned by the parallax amplitude, so drifting the layer against the
-     block never exposes a bare strip at the top or bottom edge. The section's
-     own `overflow: clip` trims the excess. */
-  inset: calc(var(--drift, 0px) * -1.7);
+  inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
@@ -744,6 +796,7 @@ h4 {
   --bf-2: rgba(63, 220, 255, 0.16);
   --bf-line: rgba(233, 237, 245, 0.06);
   --bf-dot: rgba(233, 237, 245, 0.09);
+  --bf-ground: var(--bg);
 }
 
 /* Recessed blocks sit on a darker ground, so the same figures need more
@@ -753,6 +806,7 @@ h4 {
   --bf-2: rgba(63, 220, 255, 0.22);
   --bf-line: rgba(233, 237, 245, 0.08);
   --bf-dot: rgba(233, 237, 245, 0.12);
+  --bf-ground: var(--deep);
 }
 
 .bfield__a,
@@ -824,35 +878,50 @@ h4 {
   -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
 }
 
-/* --- horizon: contour rules travelling toward the reader ------------------ */
-/* Horizontal rules only. A crossed grid tiles the block with squares and
-   turns the backdrop into graph paper, which fights the content instead of
-   sitting behind it; a ladder of contours reads as depth. */
+/* --- video: real footage behind the block --------------------------------- */
+/* Replaces the travelling contour rules that used to sit here. A ladder of
+   1px lines creeping down the block was the one backdrop that read as a
+   glitch rather than as depth, and footage does the same job of showing the
+   block is alive without drawing a single straight line across it. */
 
-.bfield--horizon .bfield__a {
-  inset-inline: -20%;
-  top: 0;
-  /* Twice the block height so a one-interval travel loops seamlessly. */
-  height: 200%;
-  background-image: linear-gradient(to bottom, var(--bf-line) 1px, transparent 1px);
-  background-size: 100% 5.5rem;
-  mask-image: radial-gradient(ellipse 70% 55% at 50% 50%, #000 15%, transparent 74%);
-  -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 50%, #000 15%, transparent 74%);
+.bfield--video .bfield__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Drained of most of its own colour so it contributes movement and light,
+     never a second palette arguing with the accent. */
+  filter: grayscale(0.45) contrast(1.18) brightness(0.72) saturate(1.15);
+  opacity: 0.55;
 }
 
-.bfield--horizon .bfield__b {
-  inset: auto -15% -35% -15%;
-  height: 34rem;
+/* The veil is what makes this safe to put behind body copy. It is painted in
+   the BLOCK's own ground, not a fixed colour, so the same variant works on
+   the standard sections and on the recessed contact block. */
+.bfield--video .bfield__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      var(--bf-ground) 0%,
+      color-mix(in srgb, var(--bf-ground) 55%, transparent) 22%,
+      color-mix(in srgb, var(--bf-ground) 55%, transparent) 78%,
+      var(--bf-ground) 100%
+    ),
+    radial-gradient(
+      120% 90% at 50% 50%,
+      color-mix(in srgb, var(--bf-ground) 78%, transparent) 0%,
+      color-mix(in srgb, var(--bf-ground) 48%, transparent) 60%,
+      color-mix(in srgb, var(--bf-ground) 20%, transparent) 100%
+    );
+}
+
+.bfield--video .bfield__c {
+  inset: auto -15% -30% -15%;
+  height: 30rem;
   background: radial-gradient(ellipse 60% 100% at 50% 100%, var(--bf-1), transparent 70%);
-  filter: blur(24px);
-}
-
-.bfield--horizon .bfield__c {
-  inset: -20% auto auto -15%;
-  width: 40rem;
-  height: 40rem;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--bf-2), transparent 66%);
   filter: blur(26px);
 }
 
@@ -922,38 +991,6 @@ h4 {
   opacity: 0.7;
 }
 
-/* --- rings: concentric arcs, counter-rotating ----------------------------- */
-
-.bfield--rings .bfield__a,
-.bfield--rings .bfield__b {
-  top: 50%;
-  left: 50%;
-  border-radius: 50%;
-  border: 1px solid var(--bf-line);
-  /* Only part of each ring is drawn, which is what makes rotation legible. */
-  mask-image: conic-gradient(#000 0deg 100deg, transparent 100deg 180deg, #000 180deg 280deg, transparent 280deg 360deg);
-  -webkit-mask-image: conic-gradient(#000 0deg 100deg, transparent 100deg 180deg, #000 180deg 280deg, transparent 280deg 360deg);
-}
-
-.bfield--rings .bfield__a {
-  width: 46rem;
-  height: 46rem;
-  margin: -23rem 0 0 -23rem;
-  border-color: var(--bf-dot);
-}
-
-.bfield--rings .bfield__b {
-  width: 72rem;
-  height: 72rem;
-  margin: -36rem 0 0 -36rem;
-}
-
-.bfield--rings .bfield__c {
-  inset: 0;
-  background: radial-gradient(ellipse 55% 55% at 50% 50%, var(--bf-1), transparent 70%);
-  filter: blur(30px);
-}
-
 /* --- aurora: one huge conic bloom, turning ------------------------------- */
 
 .bfield--aurora .bfield__a {
@@ -990,38 +1027,6 @@ h4 {
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent);
 }
 
-/* --- halo: a single wide bloom breathing behind the block ----------------- */
-
-.bfield--halo .bfield__a {
-  top: 50%;
-  left: 50%;
-  width: 60rem;
-  height: 60rem;
-  margin: -30rem 0 0 -30rem;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, var(--bf-1), var(--bf-2), transparent 55%, var(--bf-1));
-  filter: blur(70px);
-  opacity: 0.7;
-}
-
-.bfield--halo .bfield__b {
-  inset: 0;
-  background-image: radial-gradient(var(--bf-dot) 1px, transparent 1px);
-  background-size: 2.1rem 2.1rem;
-  mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000, transparent 74%);
-  -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000, transparent 74%);
-  opacity: 0.6;
-}
-
-.bfield--halo .bfield__c {
-  inset: auto -12% -25% auto;
-  width: 34rem;
-  height: 34rem;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--bf-2), transparent 64%);
-  filter: blur(28px);
-}
-
 /* --------------------------------------------------------------- 8. motion */
 
 @keyframes reveal-in {
@@ -1032,6 +1037,35 @@ h4 {
 @keyframes word-up {
   from { transform: translateY(120%); opacity: 0; }
   to { transform: none; opacity: 1; }
+}
+
+/* Letter entrance. The glyph swings up from behind the mask edge on a hinge at
+   its own baseline — a plain translate reads as a slide, the rotation is what
+   makes it read as type being set. Kept off `filter` entirely so the gleam
+   below can own that property without the two fighting over it. */
+@keyframes char-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 108%, 0) rotateX(-82deg) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The ambient half of the headline: a specular pass that travels letter by
+   letter along the line and is gone for most of the cycle. It is a highlight
+   moving over the type, NOT a colour cycling inside it — one bright moment
+   every several seconds, which is why it can loop forever without becoming
+   the thing you look at. */
+@keyframes char-gleam {
+  0%, 68%, 100% {
+    filter: brightness(1) drop-shadow(0 0 0 rgba(120, 205, 255, 0));
+  }
+  78% {
+    filter: brightness(1.4) drop-shadow(0 0 20px rgba(120, 205, 255, 0.45));
+  }
 }
 
 @keyframes wipe-in {
@@ -1052,11 +1086,6 @@ h4 {
 @keyframes blur-in {
   from { opacity: 0; filter: blur(12px); transform: translateY(2rem); }
   to { opacity: 1; filter: blur(0); transform: none; }
-}
-
-@keyframes drift-up {
-  from { transform: translateY(var(--drift, 4rem)); }
-  to { transform: translateY(calc(var(--drift, 4rem) * -1)); }
 }
 
 @keyframes fade-out-up {
@@ -1121,11 +1150,6 @@ h4 {
   100% { transform: translateY(360%); opacity: 0; }
 }
 
-@keyframes contour-fall {
-  from { transform: translate3d(0, -50%, 0); }
-  to { transform: translate3d(0, 0, 0); }
-}
-
 @keyframes stream-fall {
   from { transform: translateY(-50%); }
   to { transform: translateY(0); }
@@ -1144,11 +1168,6 @@ h4 {
 @keyframes turn {
   from { transform: rotate(0turn); }
   to { transform: rotate(1turn); }
-}
-
-@keyframes turn-back {
-  from { transform: rotate(1turn); }
-  to { transform: rotate(0turn); }
 }
 
 @keyframes breathe {
@@ -1213,9 +1232,7 @@ h4 {
   .bfield--scan .bfield__b { animation: scan-down 21s linear infinite; }
   .bfield--scan .bfield__c { animation: breathe 30s ease-in-out infinite alternate -12s; }
 
-  .bfield--horizon .bfield__a { animation: contour-fall 16s linear infinite; }
-  .bfield--horizon .bfield__b { animation: breathe 20s ease-in-out infinite alternate; }
-  .bfield--horizon .bfield__c { animation: breathe 26s ease-in-out infinite alternate -8s; }
+  .bfield--video .bfield__c { animation: breathe 26s ease-in-out infinite alternate -8s; }
 
   .bfield--streams .bfield__a { animation: stream-fall 26s linear infinite; }
   .bfield--streams .bfield__b { animation: stream-fall 38s linear infinite; }
@@ -1225,16 +1242,8 @@ h4 {
   .bfield--mesh .bfield__b { animation: orbit-b 34s ease-in-out infinite alternate; }
   .bfield--mesh .bfield__c { animation: dot-drift 18s linear infinite; }
 
-  .bfield--rings .bfield__a { animation: turn 60s linear infinite; }
-  .bfield--rings .bfield__b { animation: turn-back 96s linear infinite; }
-  .bfield--rings .bfield__c { animation: breathe 21s ease-in-out infinite alternate; }
-
   .bfield--aurora .bfield__a { animation: turn 72s linear infinite; }
   .bfield--aurora .bfield__b { animation: breathe 23s ease-in-out infinite alternate; }
-
-  .bfield--halo .bfield__a { animation: turn 84s linear infinite; }
-  .bfield--halo .bfield__b { animation: dot-drift 20s linear infinite; }
-  .bfield--halo .bfield__c { animation: breathe 25s ease-in-out infinite alternate -6s; }
 
   .bfield__a,
   .bfield__b {
@@ -1252,156 +1261,39 @@ h4 {
   .rise-4 { animation-delay: 0.36s; }
   .rise-5 { animation-delay: 0.48s; }
 
-  /* ---- scroll-driven ---- */
-  @supports (animation-timeline: view()) {
-    .m-rise {
-      animation: reveal-in linear both;
-      animation-timeline: view();
-      animation-range: entry calc(8% + var(--i, 0) * 7%) entry calc(48% + var(--i, 0) * 7%);
-    }
+  /* No scroll-driven motion.
 
-    .m-blur {
-      animation: blur-in linear both;
-      animation-timeline: view();
-      animation-range: entry 5% entry 55%;
-    }
+     Everything on this page used to reveal itself as it came into view:
+     headings, cards, rules, the metric roll-up, the parallax on the block
+     backdrops, and the hero fading out as you left it. All of it is gone.
+     Content is simply present when you arrive at it.
 
-    .m-wipe {
-      animation: wipe-in linear both;
-      animation-timeline: view();
-      animation-range: entry 10% entry 60%;
-    }
-
-    .m-zoom {
-      animation: zoom-settle linear both;
-      animation-timeline: view();
-      animation-range: entry 0% cover 55%;
-    }
-
-    .m-rule {
-      animation: draw-rule linear both;
-      animation-timeline: view();
-      animation-range: entry 15% entry 70%;
-    }
-
-    .m-drift {
-      animation: drift-up linear both;
-      animation-timeline: view();
-      animation-range: cover 0% cover 100%;
-    }
-
-    .m-exit {
-      animation: fade-out-up linear both;
-      animation-timeline: view();
-      animation-range: exit 0% exit 90%;
-    }
-
-    .m-count {
-      animation: counter-up linear both;
-      animation-timeline: view();
-      animation-range: entry calc(10% + var(--i, 0) * 8%) entry calc(55% + var(--i, 0) * 8%);
-    }
-
-    .m-scale {
-      animation: scale-in linear both;
-      animation-timeline: view();
-      animation-range: entry 5% entry 60%;
-    }
-
-    .m-left {
-      animation: slide-from-left linear both;
-      animation-timeline: view();
-      animation-range: entry calc(6% + var(--i, 0) * 6%) entry calc(52% + var(--i, 0) * 6%);
-    }
-
-    .m-right {
-      animation: slide-from-right linear both;
-      animation-timeline: view();
-      animation-range: entry calc(6% + var(--i, 0) * 6%) entry calc(52% + var(--i, 0) * 6%);
-    }
-
-    .m-tilt {
-      animation: tilt-settle linear both;
-      animation-timeline: view();
-      animation-range: entry calc(4% + var(--i, 0) * 6%) entry calc(56% + var(--i, 0) * 6%);
-    }
-
-    /* Backdrops that track the block's own passage through the viewport, so
-       each section's ground moves at a different rate from its content. */
-    .m-para {
-      animation: drift-up linear both;
-      animation-timeline: view();
-      animation-range: cover 0% cover 100%;
-    }
-
-    .m-progress {
-      animation: grow-x linear both;
-      animation-timeline: scroll(root block);
-    }
-
-    .split--scroll .split__i {
-      animation: word-up linear both;
-      animation-timeline: view();
-      animation-range: entry calc(6% + var(--i, 0) * 2.2%) entry calc(46% + var(--i, 0) * 2.2%);
-    }
-  }
-
-  /* ---- fallback for browsers without scroll-driven animations ---- */
-  @supports not (animation-timeline: view()) {
-    .js .m-rise,
-    .js .m-blur,
-    .js .m-wipe,
-    .js .m-rule,
-    .js .m-count,
-    .js .m-scale,
-    .js .m-left,
-    .js .m-right,
-    .js .m-tilt,
-    .js .split--scroll .split__i {
-      opacity: 0;
-    }
-
-    .js .m-left.is-in {
-      animation: slide-from-left 1s var(--ease) both;
-      animation-delay: calc(var(--i, 0) * 90ms);
-    }
-
-    .js .m-right.is-in {
-      animation: slide-from-right 1s var(--ease) both;
-      animation-delay: calc(var(--i, 0) * 90ms);
-    }
-
-    .js .m-tilt.is-in {
-      animation: tilt-settle 1.05s var(--ease) both;
-      animation-delay: calc(var(--i, 0) * 90ms);
-    }
-
-    .js .m-rise.is-in {
-      animation: reveal-in 0.9s var(--ease) both;
-      animation-delay: calc(var(--i, 0) * 90ms);
-    }
-
-    .js .m-blur.is-in { animation: blur-in 1s var(--ease) both; }
-    .js .m-wipe.is-in { animation: wipe-in 1s var(--ease) both; opacity: 1; }
-    .js .m-zoom.is-in { animation: zoom-settle 1.3s var(--ease) both; }
-    .js .m-rule.is-in { animation: draw-rule 1s var(--ease) both; opacity: 1; }
-
-    .js .m-count.is-in {
-      animation: counter-up 1s var(--ease) both;
-      animation-delay: calc(var(--i, 0) * 110ms);
-    }
-
-    .js .m-scale.is-in { animation: scale-in 1s var(--ease) both; }
-
-    .js .split--scroll.is-in .split__i {
-      animation: word-up 0.85s var(--ease) both;
-      animation-delay: calc(var(--i, 0) * 45ms);
-    }
-  }
+     What is left moves on its own clock rather than on the scrollbar: the
+     hero headline on first load, the ambient video and its blooms, and
+     hover states. Removing the reveals also removed the reason for the
+     IntersectionObserver fallback in Base.astro, which existed only to
+     emulate them in browsers without view timelines. */
 
   .split--load .split__i {
     animation: word-up 0.95s var(--ease) both;
     animation-delay: calc(var(--base, 0ms) + var(--i, 0) * 45ms);
+  }
+
+  /* Two animations on one element: the entrance, which settles and stays
+     settled, and the gleam, which runs forever on its own clock. They share no
+     property — the entrance owns `transform`/`opacity`, the gleam owns
+     `filter` — so neither overwrites the other's fill.
+
+     The gleam's per-letter delay is slightly longer than the entrance's, which
+     is what tips it from "every letter flashes" into a highlight that travels
+     the length of the line. It starts after the whole cascade has landed. */
+  .split--load.split--chars .split__i {
+    animation:
+      char-in 1s var(--ease-snap) both,
+      char-gleam 6s ease-in-out infinite;
+    animation-delay:
+      calc(var(--base, 0ms) + var(--i, 0) * 26ms),
+      calc(var(--base, 0ms) + 1.9s + var(--i, 0) * 34ms);
   }
 
   .sheen-host:hover .sheen::after,
@@ -1442,6 +1334,29 @@ h4 {
 .split__i {
   display: inline-block;
   will-change: transform;
+}
+
+/* Letter split. The mask box is still the WORD, so the hard edge the letters
+   rise from is unbroken across the line and a word never breaks mid-way at a
+   wrap. Perspective lives on that box because the rotation happens on the
+   letters inside it. */
+.split--chars .split__w {
+  perspective: 720px;
+}
+
+.split--chars .split__i {
+  /* Hinged just under the baseline rather than through the middle, so the
+     glyph pivots up off the mask edge instead of folding in half. */
+  transform-origin: 50% 88%;
+}
+
+/* One gradient stretched across the whole clause and sampled once per letter,
+   rather than a fresh ramp restarting inside every glyph. `--n` is the letter
+   count, so the image is exactly as wide as the line; `--p` is where in the
+   line this letter sits. Both are computed at build time in SplitText.astro. */
+.accentuate.split--chars .split__i {
+  background-size: calc(var(--n, 1) * 100%) 100%;
+  background-position: var(--p, 0%) 50%;
 }
 
 .m-progress,

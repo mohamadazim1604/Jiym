@@ -10,31 +10,35 @@ import { site } from '../data/site';
    application, a two-way movement for an integration — rather than a generic
    gear repeated four times. */
 const glyphs: Record<string, IconName> = {
-  APP: 'terminal',
-  OPS: 'booking',
+  WEB: 'terminal',
+  APP: 'mobile',
+  SHOP: 'cart',
   API: 'transaction',
-  DAT: 'model',
 };
 ---
 
 {/* Replaces the old scrolling type band. Four problem shapes, each with a mono
     code, rendered as an instrument row rather than decoration. */}
 <section class="section section--alt caps has-field" id="capabilities">
-  <BlockField variant="mesh" depth="3.5rem" />
+  <BlockField variant="mesh" />
 
   <div class="container">
     <header class="caps__head">
-      <p class="section__no m-rise" data-no="02">Capabilities</p>
+      <p class="section__no" data-no="02">Capabilities</p>
       <h2 class="h2">
-        <SplitText text="Four kinds of work." />
-        <SplitText text="Everything else is a variation." offset={4} italic />
+        <SplitText text="Four core services." />
+        <SplitText text="One standard of delivery." offset={3} italic />
       </h2>
+      <p class="lede">
+        Each one taken end to end, from the first conversation through to working software your
+        team can rely on.
+      </p>
     </header>
 
     <ol class="caps__grid">
       {
         site.services.map((service, i) => (
-          <li class="caps__card sheen glow lift m-tilt" style={`--i:${i}`}>
+          <li class="caps__card sheen glow lift" style={`--i:${i}`}>
             <div class="caps__top">
               <span class="caps__glyph">
                 <Icon name={glyphs[service.code] ?? 'stack'} size="1.35rem" />

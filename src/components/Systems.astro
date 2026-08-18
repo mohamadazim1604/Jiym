@@ -17,14 +17,14 @@ const entries = (await getCollection('work'))
 ---
 
 <section class="section systems has-field" id="systems">
-  <BlockField variant="horizon" depth="3rem" />
+  <BlockField variant="video" />
 
   <div class="container">
     <header class="systems__head">
-      <p class="section__no m-rise" data-no="01">Systems</p>
+      <p class="section__no" data-no="01">Systems</p>
       <h2 class="h2">
-        <SplitText text="Two production systems," />
-        <SplitText text="both still running." offset={3} italic />
+        <SplitText text="Two platforms in production." />
+        <SplitText text="Both still running." offset={4} italic />
       </h2>
     </header>
   </div>
@@ -36,12 +36,12 @@ const entries = (await getCollection('work'))
           <div class="container sys__grid">
             {/* Index and year run the full width as a masthead, so each record
                 opens on a rule rather than starting cold. */}
-            <div class="sys__top m-rule">
+            <div class="sys__top">
               <span class="index">{String(i + 1).padStart(2, '0')}</span>
               <span class="sys__year">{entry.data.year}</span>
             </div>
 
-            <div class="sys__body m-left" style={`--i:${i}`}>
+            <div class="sys__body" style={`--i:${i}`}>
               <h3 class="sys__name">
                 <SplitText text={entry.data.title} />
               </h3>
@@ -69,7 +69,7 @@ const entries = (await getCollection('work'))
                 their own. This is what fills the right half of the block now
                 that the diagram plate is gone, and it reads better here
                 anyway: the prose sells, the panel verifies. */}
-            <aside class="sys__side m-right" style={`--i:${i}`}>
+            <aside class="sys__side" style={`--i:${i}`}>
               {entry.data.awards.length > 0 && (
                 <div class="sys__block">
                   <p class="sys__block-k">Recognition</p>

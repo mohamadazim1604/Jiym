@@ -1,24 +1,31 @@
 ---
 import BlockField from './BlockField.astro';
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
 import { site } from '../data/site';
+
+/* One glyph per metric, in the order the stats are declared. */
+const statGlyphs: IconName[] = ['award', 'blocks', 'clock', 'stack'];
 ---
 
 {/* Metrics bar. Verifiable numbers, placed before any adjective. */}
 <section class="stats has-field" aria-label="At a glance">
-  <BlockField variant="scan" depth="2rem" />
+  <BlockField variant="scan" />
 
   <div class="container">
     <ul class="stats__grid">
       {
         site.stats.map((stat, i) => (
-          <li class="stats__cell glow lift m-tilt" style={`--i:${i}`}>
+          <li class="stats__cell glow lift" style={`--i:${i}`}>
             <span class="stats__bar" aria-hidden="true" />
-            <span class="stats__index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <span class="stats__glyph" aria-hidden="true">
+              <Icon name={statGlyphs[i] ?? 'stack'} size="1.1rem" />
+            </span>
 
             {/* The rendered text IS the final value, so the number is correct
                 with no JavaScript at all. The roll-up only ever overwrites a
                 value it has already captured from the markup. */}
-            <span class="stats__value" data-tally>{stat.value}</span>
+            <span class="stats__value">{stat.value}</span>
             <span class="stats__label">{stat.label}</span>
           </li>
         ))
@@ -27,61 +34,7 @@ import { site } from '../data/site';
   </div>
 </section>
 
-<script>
-  /**
-   * Rolls each metric up to its printed value the first time the bar is
-   * scrolled into view. Format is inferred from the markup rather than
-   * configured: '03' keeps its leading zero, '3.72' keeps two decimals, and
-   * '2+' keeps its suffix.
-   */
-  const cells = document.querySelectorAll<HTMLElement>('[data-tally]');
 
-  if (cells.length && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const DURATION = 1400;
-
-    const roll = (cell: HTMLElement) => {
-      const final = cell.textContent?.trim() ?? '';
-      const parts = final.match(/^(\D*)(\d+(?:\.\d+)?)(.*)$/);
-      if (!parts) return;
-
-      const [, prefix, digits, suffix] = parts;
-      const target = Number(digits);
-      if (!Number.isFinite(target)) return;
-
-      const decimals = digits.includes('.') ? digits.split('.')[1].length : 0;
-      const width = digits.split('.')[0].length;
-
-      const format = (value: number) =>
-        prefix + value.toFixed(decimals).padStart(decimals ? width + decimals + 1 : width, '0') + suffix;
-
-      const start = performance.now();
-
-      const step = (now: number) => {
-        const t = Math.min((now - start) / DURATION, 1);
-        // Same settle as --ease, so the numbers land with the panels.
-        const eased = 1 - Math.pow(1 - t, 4);
-        cell.textContent = format(target * eased);
-        if (t < 1) requestAnimationFrame(step);
-        else cell.textContent = final;
-      };
-
-      requestAnimationFrame(step);
-    };
-
-    const watcher = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          roll(entry.target as HTMLElement);
-          watcher.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.6 },
-    );
-
-    for (const cell of cells) watcher.observe(cell);
-  }
-</script>
 
 <style>
   /* Solid. The footage running behind a row of statistics was the single
@@ -134,15 +87,22 @@ import { site } from '../data/site';
     transform: scaleX(1);
   }
 
-  .stats__index {
+  .stats__glyph {
     position: absolute;
-    top: 0.85rem;
+    top: 0.9rem;
     right: 1rem;
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    letter-spacing: 0.14em;
-    color: var(--faint);
-    opacity: 0.6;
+    display: grid;
+    place-items: center;
+    color: var(--accent-2);
+    opacity: 0.5;
+    transition:
+      opacity 0.45s var(--ease),
+      transform 0.45s var(--ease);
+  }
+
+  .stats__cell:hover .stats__glyph {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.1);
   }
 
   /* Mono numerals at display scale. Tabular figures so the row does not jitter

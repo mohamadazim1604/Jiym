@@ -24,16 +24,16 @@ const demos = [
 ---
 
 <section class="section demos has-field" id="demos">
-  <BlockField variant="streams" depth="3.5rem" />
+  <BlockField variant="streams" />
 
   <div class="container">
     <header class="demos__head">
-      <p class="eyebrow m-rise">Live demos</p>
+      <p class="eyebrow">Live demos</p>
       <h2 class="h2">
         <SplitText text="Not screenshots." />
         <SplitText text="Working software." offset={2} italic />
       </h2>
-      <p class="lede m-rise">
+      <p class="lede">
         Both rebuilt from the real systems and running in your browser. Nothing is saved and a
         refresh returns them to the start.
       </p>
@@ -43,7 +43,7 @@ const demos = [
       {
         demos.map((demo, i) => (
           <article class="demos__item" id={demo.id}>
-            <header class="demos__item-head m-rise">
+            <header class="demos__item-head">
               <div class="demos__label">
                 <span class="index">{String(i + 1).padStart(2, '0')}</span>
                 <span class="demos__code">{demo.code}</span>
@@ -56,7 +56,7 @@ const demos = [
               </p>
             </header>
 
-            <div class="demos__frame m-scale">
+            <div class="demos__frame">
               {demo.id === 'demo-trace' ? <DemoTrace /> : <BookingDemo />}
             </div>
           </article>

@@ -1,13 +1,13 @@
 ---
-title: 'A traceability system where every kilo has to reconcile'
+title: 'A complete traceability platform, fully integrated end to end'
 client: 'National commodity traceability platform'
 sector: 'Traceability · Stock · Transactions'
 year: 2025
 code: 'TRC'
-summary: 'Purchase, processing and sale as one connected ledger, with compliance status threaded through every movement and official documents generated from the record.'
+summary: 'Purchase, processing and sale as one connected ledger. Every transaction integrated end to end, compliance status carried through each movement, and official documents generated straight from the record.'
 outcome: 'Three awards at the Malaysia Technology Expo, including Best Innovation.'
 services: ['Technical lead', 'System architecture', 'API development', 'Database design']
-stack: ['Angular 16', 'TypeScript', '.NET Core Web API', 'C#', 'SQL Server']
+stack: ['Angular ', 'TypeScript', '.NET Core Web API', 'C#', 'SQL Server']
 domains: ['Traceability', 'Stock', 'Transactions', 'Documents']
 role: 'Technical lead & full-stack developer'
 demo: 'demo-trace'
@@ -62,7 +62,7 @@ bottom of the page.
 
 ## What I built
 
-I led the technical development across an Angular 16 front end and a .NET Core
+I led the technical development across an Angular front end and a .NET Core
 Web API over SQL Server.
 
 **The transaction core.** Purchase, processing and sale, each writing into a
