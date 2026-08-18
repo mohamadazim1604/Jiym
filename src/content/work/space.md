@@ -4,13 +4,12 @@ client: 'Internal operations platform'
 sector: 'Booking · Scheduling'
 year: 2025
 code: 'BKG'
-summary: 'Space: room booking with participants, QR check-in and attendance reporting, scoped to an organisation chart of divisions and departments.'
+summary: 'Room booking with participants, QR check-in and attendance reporting, scoped to an organisation chart of divisions and departments.'
 outcome: 'Availability became a screen instead of a phone call, and attendance became a report instead of a paper sheet.'
 services: ['Product design', 'Angular development', 'API integration', 'Reporting']
 stack: ['Angular 16', 'TypeScript', 'Angular Material', 'Bootstrap 5', 'SweetAlert2']
 domains: ['Booking', 'Attendance', 'Reporting']
-role: 'Full-stack engineer'
-repo: 'C:\Project Code\LGM-Space'
+role: 'Full-stack developer'
 demo: 'demo-booking'
 order: 2
 featured: true

@@ -1,47 +1,121 @@
 ---
+import Icon from './Icon.astro';
 import { site, whatsappHref } from '../data/site';
 
 const links = [
-  { label: 'Systems', href: '/#systems' },
-  { label: 'Demos', href: '/#demos' },
-  { label: 'Capabilities', href: '/#capabilities' },
-  { label: 'About', href: '/#about' },
+  { label: 'Systems', href: '/#systems', id: 'systems' },
+  { label: 'Capabilities', href: '/#capabilities', id: 'capabilities' },
+  { label: 'Recognition', href: '/#awards', id: 'awards' },
+  { label: 'About', href: '/#about', id: 'about' },
 ];
 ---
 
 <header class="header">
   <div class="container header__inner">
     <a href="/" class="mark" aria-label={`${site.name}, home`}>
-      <span class="mark__glyph" aria-hidden="true">
-        <span class="mark__pip"></span>
+      <span class="mark__text">
+        <span class="mark__name">{site.name}</span>
+        <span class="mark__role">{site.role}</span>
       </span>
-      <span class="mark__text">{site.name}</span>
     </a>
 
-    <nav class="nav" aria-label="Primary">
+    {/* The pill slides to whatever link the pointer is over, and parks on the
+        section currently in view when the pointer leaves. One moving element
+        for the whole bar, rather than five independent hover backgrounds. */}
+    <nav class="nav" aria-label="Primary" data-nav>
+      <span class="nav__pill" aria-hidden="true"></span>
       {
         links.map((link) => (
-          <a class="nav__link" href={link.href}>
+          <a class="nav__link" href={link.href} data-spy={link.id}>
             {link.label}
           </a>
         ))
       }
     </nav>
 
-    <a class="btn btn--sm header__cta" href={whatsappHref} target="_blank" rel="noopener">
-      Start a project
-    </a>
+    <div class="header__end">
+      <a class="header__cta" href={whatsappHref} target="_blank" rel="noopener">
+        <span>Start a project</span>
+        <Icon name="arrow" size="0.9rem" class="header__cta-arrow" />
+      </a>
+    </div>
   </div>
 </header>
 
+<script>
+  /**
+   * Drives the sliding indicator, and tells it which section is in view.
+   *
+   * The pill is positioned from each link's own offset box, so it stays
+   * correct through a font swap or a resize without any measurements being
+   * hard-coded. Nothing here is required for the nav to work: without JS the
+   * links are ordinary anchors and the pill simply never appears.
+   */
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+
+  if (nav) {
+    const pill = nav.querySelector<HTMLElement>('.nav__pill');
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>('.nav__link')];
+    let active: HTMLElement | null = null;
+
+    const moveTo = (target: HTMLElement | null) => {
+      if (!pill) return;
+      if (!target) {
+        pill.style.opacity = '0';
+        return;
+      }
+      pill.style.opacity = '1';
+      pill.style.width = `${target.offsetWidth}px`;
+      pill.style.transform = `translateX(${target.offsetLeft}px)`;
+    };
+
+    for (const link of links) {
+      link.addEventListener('pointerenter', () => moveTo(link));
+      link.addEventListener('focus', () => moveTo(link));
+    }
+
+    nav.addEventListener('pointerleave', () => moveTo(active));
+
+    /* Scroll spy. `-45% 0px -45%` collapses the viewport to a band across its
+       middle, so the active link is whichever section is under the centre of
+       the screen — not merely whichever one has crept into view at the very
+       bottom. */
+    const sections = links
+      .map((link) => document.getElementById(link.dataset.spy ?? ''))
+      .filter((section): section is HTMLElement => section !== null);
+
+    if (sections.length) {
+      const spy = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const match = links.find((link) => link.dataset.spy === entry.target.id);
+            if (!match) continue;
+            for (const link of links) link.classList.toggle('is-active', link === match);
+            active = match;
+            if (!nav.matches(':hover')) moveTo(active);
+          }
+        },
+        { rootMargin: '-45% 0px -45% 0px' },
+      );
+
+      for (const section of sections) spy.observe(section);
+    }
+
+    // Keep the parked pill on the right link if the bar reflows.
+    addEventListener('resize', () => moveTo(active), { passive: true });
+  }
+</script>
+
 <style>
+  /* Solid, always. No translucency and no backdrop blur: the bar sits over
+     moving footage, and anything see-through meant the nav labels were read
+     against a ground that never stopped changing. */
   .header {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: color-mix(in srgb, var(--bg) 78%, transparent);
-    backdrop-filter: blur(14px) saturate(150%);
-    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    background-color: var(--bg);
     border-bottom: 1px solid var(--line-soft);
   }
 
@@ -49,36 +123,28 @@ const links = [
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 2rem;
-    min-height: 4.25rem;
+    gap: 1.5rem;
+    min-height: 4.5rem;
   }
 
+  /* --- wordmark ------------------------------------------------------------ */
+
+  /* A pure typographic wordmark — no glyph, no pip. The name set over the
+     role in mono is doing the identifying work on its own, and the lit square
+     beside it was reading as a stray bullet rather than as a logo. */
   .mark {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-  }
-
-  /* A small square with a live pip inside. Reads as an instrument, and it is
-     the only place the wordmark needs decoration. */
-  .mark__glyph {
-    display: grid;
-    place-items: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    border: 1px solid var(--line-hard);
-    border-radius: 3px;
     flex: none;
   }
 
-  .mark__pip {
-    width: 5px;
-    height: 5px;
-    border-radius: 1px;
-    background: var(--grad);
+  .mark__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
   }
 
-  .mark__text {
+  .mark__name {
     font-family: var(--font-display);
     font-size: var(--step-0);
     font-weight: 600;
@@ -86,53 +152,216 @@ const links = [
     white-space: nowrap;
   }
 
+  /* The role under the name is the single highest-value line in the bar: it
+     tells a visitor what is being sold before they scroll at all. */
+  .mark__role {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--faint);
+    white-space: nowrap;
+  }
+
+  /* --- nav ----------------------------------------------------------------- */
+
+  /* No capsule. A rounded pill of links is what every template ships, and it
+     fought the rest of the page, which is built from hairlines and square
+     corners. This is a machined rail instead: the links sit on a 1px track
+     and a gradient head runs along it to whichever one is live. */
   .nav {
     display: none;
-    gap: clamp(1rem, 2.5vw, 2rem);
+    position: relative;
+    align-items: stretch;
+    gap: 0.1rem;
+    padding: 0 0 0.7rem;
+  }
+
+  /* The track the head travels along. */
+  .nav::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .nav__pill {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 1;
+    width: 0;
+    height: 2px;
+    background: var(--grad);
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 0 12px 0 rgba(91, 145, 255, 0.7);
+    transition:
+      transform 0.45s var(--ease-snap),
+      width 0.45s var(--ease-snap),
+      opacity 0.3s var(--ease);
   }
 
   .nav__link {
     position: relative;
-    padding-block: 0.3rem;
+    padding: 0.35rem 0.9rem;
     font-family: var(--font-mono);
     font-size: var(--step--2);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--muted);
+    white-space: nowrap;
     transition: color 0.3s var(--ease);
   }
 
-  .nav__link::after {
-    content: '';
-    position: absolute;
-    inset-inline: 0;
-    bottom: 0;
-    height: 1px;
-    background: var(--grad);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.4s var(--ease);
-  }
-
-  .nav__link:hover {
+  .nav__link:hover,
+  .nav__link.is-active {
     color: var(--ink);
   }
 
-  .nav__link:hover::after {
-    transform: scaleX(1);
+  /* A tick above the live link, so the active state is legible even at a
+     glance away from the rail. */
+  .nav__link.is-active::before {
+    content: '';
+    position: absolute;
+    top: -0.1rem;
+    left: 50%;
+    width: 3px;
+    height: 3px;
+    margin-left: -1.5px;
+    background: var(--accent-2);
   }
 
-  /* No hamburger. Four links do not justify a JavaScript dependency and an
-     extra tap; the page scrolls to the same places and the footer repeats them. */
-  @media (min-width: 56rem) {
+  /* --- right cluster -------------------------------------------------------- */
+
+  .header__end {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex: none;
+  }
+
+  /* Squared to 3px, with a lit top edge and corner ticks. A fully rounded
+     capsule reads as a generic web button; a machined plate with a highlight
+     along its top edge reads as hardware, which is the register the rest of
+     the page is in. */
+  .header__cta {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.68rem 1.2rem;
+    border-radius: 3px;
+    background: var(--grad);
+    color: #04050a;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    /* A specular highlight along the top edge and a shadow along the bottom:
+       the two things that make a flat fill read as a raised surface. */
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      inset 0 -1px 0 rgba(4, 5, 10, 0.25),
+      0 6px 18px -10px rgba(91, 145, 255, 0.7);
+    transition:
+      transform 0.4s var(--ease),
+      box-shadow 0.4s var(--ease);
+  }
+
+  .header__cta:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -1px 0 rgba(4, 5, 10, 0.25),
+      0 14px 34px -12px rgba(91, 145, 255, 0.9);
+  }
+
+  /* Corner ticks, drawn just outside the plate. Same HUD cue the panels use. */
+  .header__cta::before,
+  .header__cta::after {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--accent-2);
+    opacity: 0;
+    transition: opacity 0.4s var(--ease);
+  }
+
+  .header__cta::before {
+    top: -3px;
+    left: -3px;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .header__cta::after {
+    bottom: -3px;
+    right: -3px;
+    border-left: 0;
+    border-top: 0;
+  }
+
+  .header__cta:hover::before,
+  .header__cta:hover::after {
+    opacity: 1;
+  }
+
+  .header__cta :global(.header__cta-arrow) {
+    transition: transform 0.4s var(--ease);
+  }
+
+  .header__cta:hover :global(.header__cta-arrow) {
+    transform: translateX(3px);
+  }
+
+  /* --- scroll state --------------------------------------------------------- */
+
+  /* The bar is opaque from the first pixel; all that arrives on scroll is the
+     cast shadow that separates it from the content passing underneath. */
+  @keyframes header-lift {
+    to {
+      box-shadow: 0 16px 40px -30px var(--shadow);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      .header {
+        animation: header-lift linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 7rem;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav__pill {
+      transition: opacity 0.3s;
+    }
+  }
+
+  /* No hamburger. Five links do not justify a JavaScript dependency and an
+     extra tap; the page scrolls to the same places and the footer repeats
+     them. Below the breakpoint the bar keeps the mark and the CTA, which are
+     the two things that actually have to be reachable. */
+  @media (min-width: 68rem) {
     .nav {
       display: flex;
     }
   }
 
   @media (max-width: 26rem) {
-    .header__cta {
+    .mark__role {
       display: none;
+    }
+
+    .header__cta {
+      padding: 0.55rem 0.9rem;
     }
   }
 </style>

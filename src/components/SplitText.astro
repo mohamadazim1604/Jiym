@@ -34,11 +34,24 @@ const words = text.split(/\s+/).filter(Boolean);
 >
   {
     words.map((word, i) => (
-      <span class="split__w">
-        <span class="split__i" style={`--i:${i + offset}`}>
-          {word}
+      <Fragment>
+        <span class="split__w">
+          <span class="split__i" style={`--i:${i + offset}`}>
+            {word}
+          </span>
         </span>
-      </span>
+        {/* A REAL space after every word box, not a margin.
+            The boxes are inline-block, so a margin would space them apart for
+            the eye while leaving the DOM one unbroken string — the headline
+            copied to the clipboard as "Ibuildsystemsthat...", and a screen
+            reader and a crawler both read it that way too.
+
+            It trails rather than leads so that two of these components set
+            side by side in one heading are separated as well. HTML collapses
+            the trailing space on the last word away, so it costs nothing at
+            the end of a line. */}
+        {' '}
+      </Fragment>
     ))
   }
 </span>

@@ -12,10 +12,10 @@
  */
 
 const lots = [
-  { id: 'LOT-1041', qty: 1200, status: 'MSNR', src: 'PO-8891', date: '02 JAN' },
-  { id: 'LOT-1042', qty: 800, status: 'MSNR', src: 'PO-8903', date: '09 JAN' },
-  { id: 'LOT-1043', qty: 640, status: 'NON-MSNR', src: 'PO-8910', date: '14 JAN' },
-  { id: 'LOT-1044', qty: 1500, status: 'MSNR', src: 'PO-8925', date: '21 JAN' },
+  { id: 'LOT-1041', qty: 1200, status: 'COMPLIANT', src: 'PO-8891', date: '02 JAN' },
+  { id: 'LOT-1042', qty: 800, status: 'COMPLIANT', src: 'PO-8903', date: '09 JAN' },
+  { id: 'LOT-1043', qty: 640, status: 'NON-COMPLIANT', src: 'PO-8910', date: '14 JAN' },
+  { id: 'LOT-1044', qty: 1500, status: 'COMPLIANT', src: 'PO-8925', date: '21 JAN' },
 ];
 
 const totalQty = lots.reduce((sum, lot) => sum + lot.qty, 0);
@@ -64,7 +64,7 @@ const totalQty = lots.reduce((sum, lot) => sum + lot.qty, 0);
                 </span>
               </div>
               <div class="trace__lot-right">
-                <span class:list={['trace__chip', lot.status === 'MSNR' ? 'is-ok' : 'is-warn']}>
+                <span class:list={['trace__chip', lot.status === 'COMPLIANT' ? 'is-ok' : 'is-warn']}>
                   {lot.status}
                 </span>
                 <span class="trace__lot-qty">
@@ -105,7 +105,7 @@ const totalQty = lots.reduce((sum, lot) => sum + lot.qty, 0);
       <div class="trace__result" data-result>
         <div class="trace__result-row">
           <span class="trace__result-k">Output status</span>
-          <span class="trace__chip" data-out-status>MSNR</span>
+          <span class="trace__chip" data-out-status>COMPLIANT</span>
         </div>
         <p class="trace__rule" data-rule></p>
       </div>
@@ -513,7 +513,7 @@ const totalQty = lots.reduce((sum, lot) => sum + lot.qty, 0);
     padding: 0.6rem 1.1rem;
     background: var(--deep);
     color: var(--deep-text);
-    border-radius: 100px;
+    border-radius: 3px;
     font-family: var(--font-mono);
     font-size: var(--step--2);
     opacity: 0;
@@ -636,8 +636,8 @@ const totalQty = lots.reduce((sum, lot) => sum + lot.qty, 0);
       }
 
       // Compliance propagates: one non-compliant input taints the output.
-      const tainted = rows.some((r) => r.lot.status !== 'MSNR');
-      outStatusEl.textContent = rows.length === 0 ? 'N/A' : tainted ? 'NON-MSNR' : 'MSNR';
+      const tainted = rows.some((r) => r.lot.status !== 'COMPLIANT');
+      outStatusEl.textContent = rows.length === 0 ? 'N/A' : tainted ? 'NON-COMPLIANT' : 'COMPLIANT';
       outStatusEl.className = `trace__chip ${rows.length === 0 ? '' : tainted ? 'is-warn' : 'is-ok'}`;
       ruleEl.textContent = tainted
         ? 'A non-compliant lot falls inside the FIFO window, so the output inherits its status. Order of receipt decides this, not choice.'
@@ -653,10 +653,10 @@ const totalQty = lots.reduce((sum, lot) => sum + lot.qty, 0);
 
       for (const row of rows) row.lot.qty -= row.take;
 
-      const tainted = rows.some((r) => r.lot.status !== 'MSNR');
+      const tainted = rows.some((r) => r.lot.status !== 'COMPLIANT');
       const outId = `OUT-${outputSeq++}`;
 
-      lineageOf.textContent = `${outId} · ${fmt(want)} kg · ${tainted ? 'NON-MSNR' : 'MSNR'}`;
+      lineageOf.textContent = `${outId} · ${fmt(want)} kg · ${tainted ? 'NON-COMPLIANT' : 'COMPLIANT'}`;
       lineageEl.innerHTML = '';
       for (const row of rows) {
         const li = document.createElement('li');

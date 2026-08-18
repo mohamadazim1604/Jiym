@@ -1,11 +1,20 @@
 ---
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
 import { site, mailtoHref, whatsappHref } from '../data/site';
+
+/* Social platforms are one of the few places a logo genuinely carries more
+   than its label does, so these are the real marks rather than a generic
+   link glyph. Anything unrecognised falls back to the arrow. */
+const socialGlyphs: Record<string, IconName> = {
+  GitHub: 'github',
+  LinkedIn: 'linkedin',
+};
 
 const year = new Date().getFullYear();
 
 const links = [
   { label: 'Systems', href: '/#systems' },
-  { label: 'Demos', href: '/#demos' },
   { label: 'Capabilities', href: '/#capabilities' },
   { label: 'Recognition', href: '/#awards' },
   { label: 'About', href: '/#about' },
@@ -16,7 +25,6 @@ const links = [
   <div class="container">
     <div class="footer__grid">
       <div class="footer__brand">
-        <span class="footer__mark" aria-hidden="true"><span class="footer__pip"></span></span>
         <p class="footer__name">{site.name}</p>
         <p class="footer__role">{site.role}</p>
         <p class="footer__loc">{site.location}</p>
@@ -29,10 +37,18 @@ const links = [
 
       <div class="footer__col">
         <p class="footer__head">Contact</p>
-        <a class="footer__link" href={mailtoHref}>{site.email}</a>
+        <a class="footer__link" href={mailtoHref}>
+          <Icon name="mail" size="0.95rem" />
+          {site.email}
+        </a>
         <a class="footer__link" href={whatsappHref} target="_blank" rel="noopener">
+          <Icon name="whatsapp" size="0.95rem" />
           {site.phoneDisplay}
         </a>
+        <span class="footer__link footer__link--static">
+          <Icon name="pin" size="0.95rem" />
+          {site.location}
+        </span>
       </div>
 
       <div class="footer__col">
@@ -40,6 +56,7 @@ const links = [
         {
           site.socials.map((social) => (
             <a class="footer__link" href={social.href} target="_blank" rel="noopener">
+              <Icon name={socialGlyphs[social.label] ?? 'arrow'} size="0.95rem" />
               {social.label}
             </a>
           ))
@@ -49,7 +66,6 @@ const links = [
 
     <div class="footer__base">
       <p class="footer__fine">© {year} {site.name}</p>
-      <p class="footer__fine">Built with Astro · No tracking</p>
     </div>
   </div>
 </footer>
@@ -58,7 +74,7 @@ const links = [
   .site-footer {
     border-top: 1px solid var(--line-soft);
     padding-block: clamp(2.5rem, 5vw, 4rem) 1.75rem;
-    background: color-mix(in srgb, var(--surface) 45%, transparent);
+    background-color: color-mix(in srgb, var(--surface) 72%, transparent);
   }
 
   .footer__grid {
@@ -71,23 +87,6 @@ const links = [
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
-  }
-
-  .footer__mark {
-    display: grid;
-    place-items: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    border: 1px solid var(--line-hard);
-    border-radius: 3px;
-    margin-bottom: 0.6rem;
-  }
-
-  .footer__pip {
-    width: 5px;
-    height: 5px;
-    border-radius: 1px;
-    background: var(--grad);
   }
 
   .footer__name {
@@ -122,21 +121,39 @@ const links = [
   }
 
   .footer__link {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
     font-size: var(--step--1);
     color: var(--ink-2);
     transition: color 0.3s var(--ease);
   }
 
-  .footer__link:hover {
+  .footer__link :global(.icon) {
+    color: var(--faint);
+    transition: color 0.3s var(--ease);
+  }
+
+  a.footer__link:hover {
     color: var(--accent);
   }
 
+  a.footer__link:hover :global(.icon) {
+    color: var(--accent-2);
+  }
+
+  .footer__link--static {
+    cursor: default;
+    color: var(--muted);
+  }
+
+  /* Centred, now that the colophon line beside it is gone. Left-aligning a
+     single line under a four-column grid just looked like the other half had
+     failed to render. */
   .footer__base {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-top: clamp(2.5rem, 6vw, 4rem);
+    justify-content: center;
+    margin-top: clamp(2rem, 4vw, 3rem);
     padding-top: 1.25rem;
     border-top: 1px solid var(--line-soft);
   }
@@ -145,5 +162,6 @@ const links = [
     font-family: var(--font-mono);
     font-size: var(--step--2);
     color: var(--faint);
+    text-align: center;
   }
 </style>

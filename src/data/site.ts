@@ -9,10 +9,10 @@ export const site = {
   /* ---------------------------------------------------------------- identity */
   name: 'Mohamad Azim',
   fullName: 'Mohamad Azim bin Hasnul Azlan',
-  role: 'Full-Stack Engineer',
-  tagline: 'I build the systems that track, move and account for things.',
+  role: 'Full-Stack Developer',
+  tagline: 'I build the software a business actually runs on.',
   description:
-    'Full-stack engineer in Kuala Lumpur. I build traceability, stock, transaction and booking systems on .NET Core and Angular. Technical lead on MSNR Trace, winner of Best Innovation and Gold at the Malaysia Technology Expo.',
+    'Full-stack developer in Kuala Lumpur, available for freelance work. Web applications, internal tools, dashboards and APIs, built end to end on .NET Core and Angular. Award-winning work at the Malaysia Technology Expo.',
   location: 'Kuala Lumpur, Malaysia',
 
   /* ---------------------------------------------------------------- contact */
@@ -30,14 +30,17 @@ export const site = {
   /* ------------------------------------------------------------ availability */
   available: true,
   availableFrom: 'Open to new projects',
-  responseTime: 'Replies within 1 business day',
+
 
   /* ------------------------------------------------------------------- proof */
   stats: [
     { value: '03', label: 'Malaysia Technology Expo awards' },
     { value: '02', label: 'Production systems shipped' },
-    { value: '2+', label: 'Years building for production' },
-    { value: '3.72', label: 'CGPA, seven consecutive Dean’s Lists' },
+    { value: '3+', label: 'Years building for production' },
+    /* Not a number, and that is deliberate: the fourth cell carries currency
+       of skills rather than an academic score, which is the thing a client is
+       actually deciding about. */
+    { value: 'LATEST', label: 'Frameworks and tooling, kept current' },
   ],
 
   /**
@@ -50,21 +53,21 @@ export const site = {
       title: 'Best Innovation Award',
       programme: 'International Innovation Awards',
       event: 'Malaysia Technology Expo',
-      project: 'MSNR Trace',
+      project: 'Traceability platform',
       tier: 'top',
     },
     {
       title: 'Gold Award',
       programme: 'International Innovation Awards',
       event: 'Malaysia Technology Expo',
-      project: 'MSNR Trace',
+      project: 'Traceability platform',
       tier: 'gold',
     },
     {
       title: 'Gold Award',
       programme: 'Public Service Innovation Asia',
       event: 'Malaysia Technology Expo',
-      project: 'MSNR Trace',
+      project: 'Traceability platform',
       tier: 'gold',
     },
     {
@@ -77,35 +80,39 @@ export const site = {
   ],
 
   /* ------------------------------------------------------------ capabilities */
-  /** The four problem shapes I actually build. Everything else is a variation. */
+  /**
+   * The four shapes of work I take on. Written broadly on purpose: these are
+   * the kinds of project I can be hired for, not a description of any one
+   * system I have already built. The case studies below carry the specifics.
+   */
   services: [
     {
-      code: 'TRC',
-      title: 'Traceability',
+      code: 'APP',
+      title: 'Web applications',
       summary:
-        'Chain of custody across a supply chain. Every movement recorded with its source, quantity and compliance status, so any unit of output can be walked back to the inputs that made it.',
-      includes: ['Chain of custody', 'Compliance status', 'Audit trails', 'Due diligence reporting'],
+        'A complete product, built end to end. Accounts, roles and permissions, the screens your users work in, and the API and database underneath them.',
+      includes: ['Full-stack build', 'Authentication and roles', 'Responsive interfaces', 'Deployment and handover'],
     },
     {
-      code: 'STK',
-      title: 'Stock',
+      code: 'OPS',
+      title: 'Internal tools',
       summary:
-        'Bins, lots and balances that stay correct under concurrent movement. FIFO consumption where units are fungible, exact batch identity where they are not.',
-      includes: ['Bin and lot structure', 'FIFO consumption', 'Batch identity', 'Balance reconciliation'],
+        'The admin systems a team actually runs its day on. Replacing the spreadsheet, the shared inbox and the paper form with one place where the record is kept.',
+      includes: ['Admin and back-office', 'Workflow and approvals', 'Scheduling and bookings', 'Document generation'],
     },
     {
-      code: 'TRX',
-      title: 'Transactions',
+      code: 'API',
+      title: 'APIs and integrations',
       summary:
-        'Purchase, processing and sale as one connected ledger. Documents generated from the record rather than typed twice, and numbering the server owns.',
-      includes: ['Purchase and sales flows', 'Processing and yield', 'Official documents', 'Declarations'],
+        'Services other software can rely on, and the work of making two systems that were never designed to talk to each other do it anyway.',
+      includes: ['REST API design', 'Third-party integration', 'Data import and migration', 'Documentation'],
     },
     {
-      code: 'BKG',
-      title: 'Booking',
+      code: 'DAT',
+      title: 'Data and reporting',
       summary:
-        'Scheduling with real conflict prevention, participants, QR check-in and attendance that becomes a report instead of a paper sheet.',
-      includes: ['Availability and conflicts', 'Participants', 'QR check-in', 'Utilisation reporting'],
+        'A schema that holds up under real use, and the dashboards and exports that turn what it records into something a manager can act on.',
+      includes: ['Database design', 'Dashboards', 'Reports and exports', 'Audit trails'],
     },
   ],
 
@@ -131,12 +138,12 @@ export const site = {
 
   /* ------------------------------------------------------------------- about */
   about: {
-    /** REVIEW: drop a photo at public/portrait.jpg (4:5) and set this to it. */
-    portrait: '',
+    /* The portrait is imported directly in About.astro so the build can
+       optimise it; it is not a path in here. */
     body: [
-      'I build line-of-business systems: the software an organisation runs its operations on, where the data has to be right because somebody downstream is accountable for it.',
-      'Most of my work has been on MSNR Trace, a rubber traceability platform where I led the technical development across an Angular front end and a .NET Core API. It threads compliance status through purchase, processing and sale, generates the official documents at the end of each flow, and has to survive an audit years after a record was written.',
-      'Alongside it I built Space, a booking and attendance system, and I take on a small number of freelance projects at a time. You deal with me directly, from the first call through to handover.',
+      'I build the software organisations run their day on: web applications, internal tools, dashboards and the APIs behind them. Front end through to database, one person, start to finish.',
+      'I led the technical development of a national traceability platform across an Angular front end and a .NET Core API. It has to stay correct under audit years after a record was written, and it took three awards at the Malaysia Technology Expo. Alongside it I have shipped scheduling, reporting and internal operations tools.',
+      'I take on a small number of freelance projects at a time, which is deliberate: you deal with me directly from the first call through to handover, and your project is never queued behind five others.',
     ],
     stack: [
       { group: 'Backend', items: ['.NET Core Web API', 'C#', 'Entity Framework', 'SQL Server', 'MySQL'] },

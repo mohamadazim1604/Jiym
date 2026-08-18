@@ -1,43 +1,27 @@
 ---
 import { getCollection } from 'astro:content';
 import SplitText from './SplitText.astro';
+import BlockField from './BlockField.astro';
 
 const entries = (await getCollection('work'))
   .filter((entry) => entry.data.featured)
   .sort((a, b) => a.data.order - b.data.order);
 
-/**
- * Flow diagrams, keyed by the project's domain code. Each is drawn from the
- * real pipeline in that codebase rather than invented for the page.
+/*
+ * The media column is deliberately empty for now — real screenshots of each
+ * system are coming, and a generated plate standing in for them was doing
+ * more harm than good. Until then each system is set as a typographic record
+ * across the full measure rather than being squeezed into half of a two
+ * column grid with nothing in the other half.
  */
-const flows: Record<string, { nodes: { label: string; sub: string }[]; note: string }> = {
-  TRC: {
-    nodes: [
-      { label: 'Purchase', sub: 'Import · Local · Delivery note' },
-      { label: 'Stock', sub: 'Bins → lots · FIFO or batch' },
-      { label: 'Processing', sub: 'Consume inputs · yield output' },
-      { label: 'Sale', sub: 'Delivery note · receipt' },
-      { label: 'Documents', sub: 'Weighing slip · due diligence' },
-    ],
-    note: 'Compliance status carried on every edge',
-  },
-  BKG: {
-    nodes: [
-      { label: 'Room', sub: 'Capacity · location · dept' },
-      { label: 'Booking', sub: 'Time range · conflict check' },
-      { label: 'Participants', sub: 'Invitation status' },
-      { label: 'QR token', sub: 'Issued per booking' },
-      { label: 'Attendance', sub: 'Check-in time · report' },
-    ],
-    note: 'Scoped by division and department',
-  },
-};
 ---
 
-<section class="section systems" id="systems">
+<section class="section systems has-field" id="systems">
+  <BlockField variant="horizon" depth="3rem" />
+
   <div class="container">
     <header class="systems__head">
-      <p class="eyebrow m-rise">Systems</p>
+      <p class="section__no m-rise" data-no="01">Systems</p>
       <h2 class="h2">
         <SplitText text="Two production systems," />
         <SplitText text="both still running." offset={3} italic />
@@ -47,59 +31,17 @@ const flows: Record<string, { nodes: { label: string; sub: string }[]; note: str
 
   {
     entries.map((entry, i) => {
-      const flow = flows[entry.data.code] ?? flows.TRC;
       return (
         <article class="sys">
           <div class="container sys__grid">
-            {/* Pinned diagram. Holds still while the argument scrolls past it. */}
-            <div class="sys__media">
-              <figure class="sys__panel ticked">
-                <span class="scanline" aria-hidden="true" />
-
-                <figcaption class="sys__panel-head">
-                  <span class="sys__panel-code">{entry.data.code}</span>
-                  <span class="sys__panel-title">Pipeline</span>
-                </figcaption>
-
-                <svg
-                  class="sys__svg"
-                  viewBox="0 0 380 470"
-                  role="img"
-                  aria-label={`Flow diagram: ${flow.nodes.map((n) => n.label).join(', then ')}`}
-                >
-                  <line class="sys__spine" x1="34" y1="34" x2="34" y2="436" />
-                  <circle class="sys__pulse-glow" cx="34" cy="34" r="11" />
-                  <circle class="sys__pulse" cx="34" cy="34" r="4" />
-
-                  {flow.nodes.map((node, n) => {
-                    const y = 34 + n * 100.5;
-                    return (
-                      <g>
-                        <rect class="sys__node" x="24" y={y - 10} width="20" height="20" rx="4" />
-                        <text class="sys__label" x="66" y={y - 1}>
-                          {node.label}
-                        </text>
-                        <text class="sys__sub" x="66" y={y + 17}>
-                          {node.sub}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
-
-                <div class="sys__panel-foot">
-                  <span class="sys__note">{flow.note}</span>
-                </div>
-              </figure>
+            {/* Index and year run the full width as a masthead, so each record
+                opens on a rule rather than starting cold. */}
+            <div class="sys__top m-rule">
+              <span class="index">{String(i + 1).padStart(2, '0')}</span>
+              <span class="sys__year">{entry.data.year}</span>
             </div>
 
-            {/* The argument. */}
-            <div class="sys__body">
-              <div class="sys__top">
-                <span class="index">{String(i + 1).padStart(2, '0')}</span>
-                <span class="sys__year">{entry.data.year}</span>
-              </div>
-
+            <div class="sys__body m-left" style={`--i:${i}`}>
               <h3 class="sys__name">
                 <SplitText text={entry.data.title} />
               </h3>
@@ -113,27 +55,6 @@ const flows: Record<string, { nodes: { label: string; sub: string }[]; note: str
                 ))}
               </ul>
 
-              {entry.data.awards.length > 0 && (
-                <ul class="sys__awards m-rise">
-                  {entry.data.awards.map((award) => (
-                    <li class="sys__award">{award}</li>
-                  ))}
-                </ul>
-              )}
-
-              <dl class="sys__meta">
-                <div class="sys__meta-row">
-                  <dt class="sys__meta-k">Stack</dt>
-                  <dd class="sys__meta-v">{entry.data.stack.join(' · ')}</dd>
-                </div>
-                {entry.data.repo && (
-                  <div class="sys__meta-row">
-                    <dt class="sys__meta-k">Source</dt>
-                    <dd class="sys__meta-v sys__path">{entry.data.repo}</dd>
-                  </div>
-                )}
-              </dl>
-
               <div class="sys__actions">
                 <a class="btn" href={`/work/${entry.id}`}>
                   Read the case study
@@ -141,13 +62,39 @@ const flows: Record<string, { nodes: { label: string; sub: string }[]; note: str
                     →
                   </span>
                 </a>
-                {entry.data.demo && (
-                  <a class="btn btn--ghost" href={`#${entry.data.demo}`}>
-                    Try the demo
-                  </a>
-                )}
               </div>
             </div>
+
+            {/* The record's facts, moved out of the argument column and into
+                their own. This is what fills the right half of the block now
+                that the diagram plate is gone, and it reads better here
+                anyway: the prose sells, the panel verifies. */}
+            <aside class="sys__side m-right" style={`--i:${i}`}>
+              {entry.data.awards.length > 0 && (
+                <div class="sys__block">
+                  <p class="sys__block-k">Recognition</p>
+                  <ul class="sys__awards">
+                    {entry.data.awards.map((award) => (
+                      <li class="sys__award">{award}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div class="sys__block">
+                <p class="sys__block-k">Stack</p>
+                <ul class="sys__stack">
+                  {entry.data.stack.map((item) => (
+                    <li class="sys__stack-item">{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div class="sys__block">
+                <p class="sys__block-k">Sector</p>
+                <p class="sys__block-v">{entry.data.sector}</p>
+              </div>
+            </aside>
           </div>
         </article>
       );
@@ -164,135 +111,40 @@ const flows: Record<string, { nodes: { label: string; sub: string }[]; note: str
   }
 
   .sys {
-    padding-top: clamp(3rem, 8vw, 6rem);
+    padding-top: clamp(1.75rem, 3.5vw, 2.75rem);
+  }
+
+  /* A rule between entries, so two records in a single column still read as
+     two distinct systems without needing a card around each. */
+  .sys + .sys {
+    margin-top: clamp(1.75rem, 3.5vw, 2.75rem);
+    border-top: 1px solid var(--line-soft);
   }
 
   .sys__grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: clamp(2rem, 5vw, 3.5rem);
+    column-gap: clamp(2.5rem, 5vw, 4.5rem);
+    row-gap: clamp(1.5rem, 3vw, 2.25rem);
     align-items: start;
   }
 
-  /* --- diagram panel ------------------------------------------------------ */
-  .sys__panel {
-    position: relative;
-    margin: 0;
-    overflow: hidden;
-    background: var(--deep);
-    color: var(--deep-text);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-  }
+  /* --- masthead ------------------------------------------------------------ */
 
-  .sys__panel-head {
+  .sys__top {
     display: flex;
-    align-items: baseline;
-    gap: 0.7rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--deep-line);
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--line-soft);
   }
 
-  .sys__panel-code {
-    font-family: var(--font-mono);
-    font-size: var(--step-1);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    background: var(--grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .sys__panel-title {
+  .sys__year {
     font-family: var(--font-mono);
     font-size: var(--step--2);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--deep-muted);
-  }
-
-  .sys__svg {
-    width: 100%;
-    height: auto;
-    margin-block: 0.5rem;
-  }
-
-  .sys__spine {
-    stroke: var(--deep-line);
-    stroke-width: 1;
-  }
-
-  .sys__node {
-    fill: var(--deep);
-    stroke: var(--accent-2);
-    stroke-width: 1.5;
-  }
-
-  .sys__label {
-    fill: var(--deep-text);
-    font-family: var(--font-display);
-    font-size: 19px;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-  }
-
-  .sys__sub {
-    fill: var(--deep-muted);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-  }
-
-  .sys__pulse {
-    fill: var(--accent-2);
-  }
-
-  .sys__pulse-glow {
-    fill: var(--accent-2);
-    opacity: 0.2;
-  }
-
-  .sys__panel-foot {
-    padding-top: 1rem;
-    border-top: 1px solid var(--deep-line);
-  }
-
-  .sys__note {
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    letter-spacing: 0.06em;
-    color: var(--deep-muted);
-  }
-
-  @keyframes sys-travel {
-    0% {
-      transform: translateY(0);
-      opacity: 0;
-    }
-    8%,
-    92% {
-      opacity: 1;
-    }
-    100% {
-      /* 402 user units: the full length of the spine. */
-      transform: translateY(402px);
-      opacity: 0;
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .sys__pulse,
-    .sys__pulse-glow {
-      animation: sys-travel 6.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sys__pulse,
-    .sys__pulse-glow {
-      display: none;
-    }
+    letter-spacing: 0.1em;
+    color: var(--muted);
   }
 
   /* --- body --------------------------------------------------------------- */
@@ -303,21 +155,9 @@ const flows: Record<string, { nodes: { label: string; sub: string }[]; note: str
     gap: 1rem;
   }
 
-  .sys__top {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-  }
-
-  .sys__year {
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    color: var(--faint);
-  }
-
   .sys__name {
     font-size: var(--step-3);
-    max-width: 20ch;
+    max-width: 18ch;
   }
 
   .sys__role {
@@ -343,69 +183,6 @@ const flows: Record<string, { nodes: { label: string; sub: string }[]; note: str
     margin: 0.25rem 0 0;
   }
 
-  .sys__awards {
-    list-style: none;
-    padding: 0;
-    margin: 0.5rem 0 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .sys__award {
-    display: flex;
-    align-items: baseline;
-    gap: 0.55rem;
-    font-size: var(--step--2);
-    color: var(--ink-2);
-  }
-
-  .sys__award::before {
-    content: '◆';
-    color: var(--accent);
-    font-size: 0.7em;
-    flex: none;
-  }
-
-  .sys__meta {
-    width: 100%;
-    margin: 0.75rem 0 0;
-  }
-
-  .sys__meta-row {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.2rem;
-    padding-block: 0.7rem;
-    border-top: 1px solid var(--line-soft);
-  }
-
-  .sys__meta-row:last-child {
-    border-bottom: 1px solid var(--line-soft);
-  }
-
-  .sys__meta-k {
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--faint);
-  }
-
-  .sys__meta-v {
-    margin: 0;
-    font-size: var(--step--1);
-    color: var(--ink-2);
-  }
-
-  /* Source path in mono, so it reads as a location rather than as prose. */
-  .sys__path {
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    color: var(--muted);
-    word-break: break-all;
-  }
-
   .sys__actions {
     display: flex;
     flex-wrap: wrap;
@@ -413,26 +190,94 @@ const flows: Record<string, { nodes: { label: string; sub: string }[]; note: str
     margin-top: 0.75rem;
   }
 
+  /* --- facts column -------------------------------------------------------- */
+
+  .sys__side {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+  }
+
+  .sys__block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .sys__block + .sys__block {
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .sys__block-k {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .sys__block-v {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+
+  .sys__awards {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .sys__award {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+
+  .sys__award::before {
+    content: '◆';
+    color: var(--accent-2);
+    font-size: 0.7em;
+    flex: none;
+  }
+
+  .sys__stack {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .sys__stack-item {
+    padding: 0.25rem 0.55rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-2);
+  }
+
   @media (min-width: 62rem) {
+    /* Two columns: the argument on the left, the record that backs it on the
+       right. This is what stops the block sitting in the left third of an
+       80rem container with the rest of the width doing nothing. */
     .sys__grid {
-      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
-      gap: clamp(2.5rem, 6vw, 5rem);
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
     }
 
-    .sys__media {
-      position: sticky;
-      top: 6rem;
-    }
-
-    .sys__meta-row {
-      grid-template-columns: 7rem 1fr;
-      gap: 1.25rem;
-      align-items: baseline;
-    }
-
-    /* Alternate the diagram side so the eye zig-zags down the page. */
-    .sys:nth-child(odd) .sys__media {
-      order: 2;
+    .sys__top {
+      grid-column: 1 / -1;
     }
   }
 </style>

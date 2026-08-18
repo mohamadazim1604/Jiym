@@ -1,5 +1,7 @@
 ---
 import SplitText from './SplitText.astro';
+import BlockField from './BlockField.astro';
+import Icon from './Icon.astro';
 import DemoTrace from './DemoTrace.astro';
 import BookingDemo from './BookingDemo.astro';
 
@@ -10,7 +12,6 @@ const demos = [
     title: 'Stock and traceability',
     blurb:
       'Change the quantity and watch the FIFO window move. Receipt order decides which lots are drawn, and a single non-compliant lot inside that window changes the status of everything produced from it. Run it and the lineage is written underneath.',
-    source: 'C:\\Project Code\\MSNR Trace',
   },
   {
     id: 'demo-booking',
@@ -18,12 +19,13 @@ const demos = [
     title: 'Booking and attendance',
     blurb:
       'Pick a free slot, set a participant count against room capacity, and confirm. The booking issues a QR token; scanning it records a check-in against that booking, which is what turns attendance into a report rather than an assertion.',
-    source: 'C:\\Project Code\\LGM-Space',
   },
 ];
 ---
 
-<section class="section demos" id="demos">
+<section class="section demos has-field" id="demos">
+  <BlockField variant="streams" depth="3.5rem" />
+
   <div class="container">
     <header class="demos__head">
       <p class="eyebrow m-rise">Live demos</p>
@@ -48,9 +50,9 @@ const demos = [
                 <h3 class="demos__title">{demo.title}</h3>
               </div>
               <p class="demos__blurb">{demo.blurb}</p>
-              <p class="demos__source">
-                <span class="demos__source-k">SOURCE</span>
-                <span class="demos__source-v">{demo.source}</span>
+              <p class="demos__live">
+                <Icon name="play" size="0.95rem" />
+                <span>Running in your browser · nothing is saved</span>
               </p>
             </header>
 
@@ -76,7 +78,7 @@ const demos = [
     display: flex;
     flex-direction: column;
     gap: clamp(3.5rem, 8vw, 6rem);
-    margin-top: clamp(2.5rem, 6vw, 4rem);
+    margin-top: clamp(1.75rem, 3.5vw, 2.75rem);
   }
 
   .demos__item {
@@ -119,30 +121,25 @@ const demos = [
     text-wrap: pretty;
   }
 
-  .demos__source {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.6rem;
-  }
-
-  .demos__source-k {
+  /* Replaces the old SOURCE readout, which printed a local Windows path on a
+     public page: internal detail with nothing in it for a client. */
+  .demos__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--accent-line);
+    border-radius: 3px;
     font-family: var(--font-mono);
     font-size: var(--step--2);
-    letter-spacing: 0.14em;
-    color: var(--faint);
-  }
-
-  .demos__source-v {
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    color: var(--muted);
-    word-break: break-all;
+    letter-spacing: 0.06em;
+    color: var(--accent-2);
+    align-self: flex-start;
   }
 
   .demos__frame {
     /* The demos carry their own chrome, so the wrapper only provides lift. */
-    box-shadow: 0 30px 60px -45px rgba(10, 13, 18, 0.5);
+    box-shadow: 0 30px 70px -45px var(--shadow);
     border-radius: var(--radius);
   }
 </style>

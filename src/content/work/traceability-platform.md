@@ -1,16 +1,15 @@
 ---
-title: 'A traceability ERP where every kilo has to reconcile'
+title: 'A traceability system where every kilo has to reconcile'
 client: 'National commodity traceability platform'
 sector: 'Traceability · Stock · Transactions'
 year: 2025
 code: 'TRC'
-summary: 'MSNR Trace: purchase, processing and sale as one connected ledger, with compliance status threaded through every movement and official documents generated from the record.'
+summary: 'Purchase, processing and sale as one connected ledger, with compliance status threaded through every movement and official documents generated from the record.'
 outcome: 'Three awards at the Malaysia Technology Expo, including Best Innovation.'
 services: ['Technical lead', 'System architecture', 'API development', 'Database design']
 stack: ['Angular 16', 'TypeScript', '.NET Core Web API', 'C#', 'SQL Server']
 domains: ['Traceability', 'Stock', 'Transactions', 'Documents']
-role: 'Technical lead & full-stack engineer'
-repo: 'C:\Project Code\MSNR Trace'
+role: 'Technical lead & full-stack developer'
 demo: 'demo-trace'
 awards:
   [

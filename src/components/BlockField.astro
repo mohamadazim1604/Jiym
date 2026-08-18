@@ -1,0 +1,38 @@
+---
+/**
+ * The animated backdrop that sits behind a block.
+ *
+ * Always the same three spans; the variant decides what those three spans
+ * mean. All of the drawing and all of the motion lives in global.css under
+ * "7b. per-block backdrops", which is what keeps nine different backdrops
+ * reading as one system rather than nine one-off decorations.
+ *
+ * Ships zero JavaScript and zero images: every layer is a gradient.
+ */
+interface Props {
+  /** Which backdrop vocabulary to draw. */
+  variant?: 'beam' | 'scan' | 'horizon' | 'streams' | 'mesh' | 'rings' | 'aurora' | 'halo';
+  /** `deep` redraws the same figures in light-on-dark for inverted blocks. */
+  tone?: 'light' | 'deep';
+  /**
+   * Parallax the whole backdrop against the block's own travel through the
+   * viewport. Off for blocks that already contain sticky elements, where a
+   * second competing rate of motion just reads as drift.
+   */
+  parallax?: boolean;
+  /** Parallax amplitude. Ignored unless `parallax` is set. */
+  depth?: string;
+}
+
+const { variant = 'beam', tone = 'light', parallax = true, depth = '3rem' } = Astro.props;
+---
+
+<div
+  class:list={['bfield', `bfield--${variant}`, `bfield--${tone}`, { 'm-para': parallax }]}
+  style={parallax ? `--drift:${depth}` : undefined}
+  aria-hidden="true"
+>
+  <span class="bfield__a"></span>
+  <span class="bfield__b"></span>
+  <span class="bfield__c"></span>
+</div>

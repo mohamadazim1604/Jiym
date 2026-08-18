@@ -1,28 +1,48 @@
 ---
 import SplitText from './SplitText.astro';
+import BlockField from './BlockField.astro';
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
 import { site } from '../data/site';
+
+/* One glyph per shape of work, keyed by the same three-letter code the card
+   already carries. Drawn from what the work IS — a terminal for a built
+   application, a two-way movement for an integration — rather than a generic
+   gear repeated four times. */
+const glyphs: Record<string, IconName> = {
+  APP: 'terminal',
+  OPS: 'booking',
+  API: 'transaction',
+  DAT: 'model',
+};
 ---
 
 {/* Replaces the old scrolling type band. Four problem shapes, each with a mono
     code, rendered as an instrument row rather than decoration. */}
-<section class="section caps" id="capabilities">
+<section class="section section--alt caps has-field" id="capabilities">
+  <BlockField variant="mesh" depth="3.5rem" />
+
   <div class="container">
     <header class="caps__head">
-      <p class="eyebrow m-rise">Capabilities</p>
+      <p class="section__no m-rise" data-no="02">Capabilities</p>
       <h2 class="h2">
-        <SplitText text="Four problem shapes." />
-        <SplitText text="Everything else is a variation." offset={3} italic />
+        <SplitText text="Four kinds of work." />
+        <SplitText text="Everything else is a variation." offset={4} italic />
       </h2>
     </header>
 
     <ol class="caps__grid">
       {
         site.services.map((service, i) => (
-          <li class="caps__card sheen m-rise" style={`--i:${i}`}>
+          <li class="caps__card sheen glow lift m-tilt" style={`--i:${i}`}>
             <div class="caps__top">
-              <span class="caps__code">{service.code}</span>
+              <span class="caps__glyph">
+                <Icon name={glyphs[service.code] ?? 'stack'} size="1.35rem" />
+              </span>
               <span class="caps__num">{String(i + 1).padStart(2, '0')}</span>
             </div>
+
+            <span class="caps__code">{service.code}</span>
 
             <h3 class="caps__title">{service.title}</h3>
             <p class="caps__summary">{service.summary}</p>
@@ -52,7 +72,7 @@ import { site } from '../data/site';
   .caps__grid {
     list-style: none;
     padding: 0;
-    margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+    margin: clamp(1.75rem, 3.5vw, 2.75rem) 0 0;
     display: grid;
     grid-template-columns: 1fr;
     gap: 1px;
@@ -66,29 +86,54 @@ import { site } from '../data/site';
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    gap: 0.6rem;
     padding: clamp(1.5rem, 3vw, 2.1rem);
-    background: var(--surface);
+    /* `background-color`, not the shorthand, so `.glow` keeps its lamp. */
+    background-color: var(--surface);
     overflow: hidden;
-    transition: background 0.45s var(--ease);
+    transition: background-color 0.45s var(--ease);
   }
 
   .caps__card:hover {
-    background: var(--surface-2);
+    background-color: var(--surface-2);
   }
 
   .caps__top {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 0.25rem;
+  }
+
+  /* The glyph sits in its own bevelled well, which is what makes it read as a
+     component of an instrument rather than an illustration dropped on a card. */
+  .caps__glyph {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(160deg, var(--surface-2), transparent);
+    color: var(--accent-2);
+    transition:
+      color 0.45s var(--ease),
+      border-color 0.45s var(--ease),
+      transform 0.5s var(--ease);
+  }
+
+  .caps__card:hover .caps__glyph {
+    color: var(--accent);
+    border-color: var(--accent-line);
+    transform: translateY(-2px) scale(1.06);
   }
 
   /* The three-letter code is the whole personality of this card. */
   .caps__code {
     font-family: var(--font-mono);
-    font-size: var(--step-1);
+    font-size: var(--step--2);
     font-weight: 600;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.16em;
     background: var(--grad);
     -webkit-background-clip: text;
     background-clip: text;

@@ -1,5 +1,5 @@
 ---
-import '@fontsource-variable/space-grotesk/wght.css';
+import '@fontsource-variable/sora/wght.css';
 import '@fontsource-variable/inter/wght.css';
 import '@fontsource-variable/jetbrains-mono/wght.css';
 import '../styles/global.css';
@@ -35,7 +35,15 @@ const schema = {
     addressLocality: 'Kuala Lumpur',
     addressCountry: 'MY',
   },
-  knowsAbout: ['Traceability systems', 'Stock management', 'Transaction systems', 'Booking systems'],
+  knowsAbout: [
+    'Web application development',
+    'Full-stack development',
+    'API development',
+    'Database design',
+    'Internal business tools',
+    '.NET Core',
+    'Angular',
+  ],
   sameAs: site.socials.map((s) => s.href),
 };
 ---
@@ -53,7 +61,7 @@ const schema = {
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
-    <meta name="theme-color" content="#eceef2" />
+    <meta name="theme-color" content="#070910" />
 
     <meta property="og:type" content={type} />
     <meta property="og:title" content={pageTitle} />
@@ -81,10 +89,21 @@ const schema = {
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
 
-    <!-- Ambient field: a drifting technical grid under a slow colour mesh.
-         Fixed, behind everything, and never still. -->
+    <!-- Ambient field. Three fixed layers behind the whole document: footage,
+         a veil that buys the text its contrast back, and a slow colour mesh.
+         Never still, but nothing sweeps across it and nothing is tiled. -->
     <div class="field" aria-hidden="true">
-      <div class="field__grid"></div>
+      <video
+        class="field__video"
+        src="/media/ambient.mp4"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="auto"
+        disablepictureinpicture
+        tabindex="-1"></video>
+      <div class="field__veil"></div>
       <div class="field__mesh"></div>
     </div>
 
@@ -97,17 +116,18 @@ const schema = {
     <Footer />
 
     <script>
+      const reducedQuery = matchMedia('(prefers-reduced-motion: reduce)');
+
       /**
        * Motion fallback for browsers without scroll-driven animations.
        * Chrome, Edge and Safari never run this.
        */
       const supportsScrollDriven =
         typeof CSS !== 'undefined' && CSS.supports?.('animation-timeline: view()');
-      const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      if (!supportsScrollDriven && !prefersReduced) {
+      if (!supportsScrollDriven && !reducedQuery.matches) {
         const targets = document.querySelectorAll(
-          '[data-motion], .m-rise, .m-blur, .m-wipe, .m-zoom, .m-rule, .m-count, .m-scale',
+          '[data-motion], .m-rise, .m-blur, .m-wipe, .m-zoom, .m-rule, .m-count, .m-scale, .m-left, .m-right, .m-tilt',
         );
 
         const observer = new IntersectionObserver(
@@ -122,6 +142,68 @@ const schema = {
         );
 
         for (const target of targets) observer.observe(target);
+      }
+
+      /**
+       * Ambient video. Decoding a looping clip forever is the most expensive
+       * thing on the page, so it only ever runs when it is actually being
+       * looked at and actually wanted: paused on a hidden tab, on Data Saver,
+       * and under prefers-reduced-motion, where the first frame is left up as
+       * a still.
+       */
+      const ambient = document.querySelector<HTMLVideoElement>('.field__video');
+
+      if (ambient) {
+        const saveData = (navigator as any).connection?.saveData === true;
+
+        const settleVideo = () => {
+          if (reducedQuery.matches || saveData || document.hidden) {
+            ambient.pause();
+          } else {
+            // Rejected autoplay is not an error worth surfacing: the veil and
+            // the colour mesh still carry the page on their own.
+            ambient.play().catch(() => {});
+          }
+        };
+
+        reducedQuery.addEventListener('change', settleVideo);
+        document.addEventListener('visibilitychange', settleVideo);
+        settleVideo();
+      }
+
+      /**
+       * Pointer lamp. Feeds the cursor position to any `.glow` surface as a
+       * percentage pair, which CSS turns into a radial highlight. Coalesced
+       * into one rAF per frame so a fast drag across a four-card grid still
+       * costs a single style recalculation.
+       */
+      const lamps = document.querySelectorAll<HTMLElement>('.glow');
+
+      if (lamps.length && !reducedQuery.matches && matchMedia('(hover: hover)').matches) {
+        let queued = false;
+        let pending: { el: HTMLElement; x: number; y: number } | null = null;
+
+        const flush = () => {
+          queued = false;
+          if (!pending) return;
+          pending.el.style.setProperty('--mx', `${pending.x}%`);
+          pending.el.style.setProperty('--my', `${pending.y}%`);
+          pending = null;
+        };
+
+        for (const lamp of lamps) {
+          lamp.addEventListener('pointermove', (event) => {
+            const box = lamp.getBoundingClientRect();
+            pending = {
+              el: lamp,
+              x: ((event.clientX - box.left) / box.width) * 100,
+              y: ((event.clientY - box.top) / box.height) * 100,
+            };
+            if (queued) return;
+            queued = true;
+            requestAnimationFrame(flush);
+          });
+        }
       }
     </script>
 

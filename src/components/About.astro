@@ -1,41 +1,47 @@
 ---
+import { Image } from 'astro:assets';
 import SplitText from './SplitText.astro';
+import BlockField from './BlockField.astro';
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
+import portrait from '../assets/azim-portrait.jpeg';
 import { site } from '../data/site';
+
+/* One glyph per stack group, in the order the groups are declared. */
+const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
 ---
 
-<section class="section about" id="about">
+<section class="section section--alt about has-field" id="about">
+  <BlockField variant="halo" depth="3.5rem" />
+
   <div class="container about__grid">
     {/* Portrait. A real face is a trust signal: someone is deciding whether to
-        hand money to a stranger. Degrades to a designed frame if absent. */}
+        hand money to a stranger.
+
+        Image rather than a plain img tag: it resizes, converts and hashes the
+        source at build time and writes the intrinsic width and height in, so
+        the block reserves its space before the file arrives.
+
+        widths never goes above 720, because the source file IS 720x1080 —
+        asking the build for a 1000px variant upscaled it, and an upscale is
+        exactly what blurry looks like. The frame is capped to 22rem to match,
+        so the widest variant still covers a 2x display one for one. */}
     <figure class="about__figure m-wipe ticked">
-      {
-        site.about.portrait ? (
-          <img
-            class="about__img m-zoom"
-            src={site.about.portrait}
-            alt={`${site.name}, ${site.role.toLowerCase()} based in ${site.location}`}
-            width="1000"
-            height="1250"
-            loading="lazy"
-            decoding="async"
-          />
-        ) : (
-          <div class="about__placeholder m-zoom">
-            <span class="about__initials">
-              {site.name
-                .split(' ')
-                .map((part) => part[0])
-                .join('')}
-            </span>
-            <span class="about__hint">public/portrait.jpg</span>
-          </div>
-        )
-      }
-      <figcaption class="about__caption">{site.location}</figcaption>
+      <Image
+        class="about__img m-zoom"
+        src={portrait}
+        alt={`${site.name}, ${site.role.toLowerCase()} based in ${site.location}`}
+        widths={[360, 540, 720]}
+        sizes="(min-width: 56rem) 22rem, 92vw"
+        format="webp"
+        quality={82}
+        loading="lazy"
+        decoding="async"
+      />
     </figure>
 
     <div class="about__text">
-      <p class="eyebrow m-rise">About</p>
+      <p class="section__no m-rise" data-no="04">About</p>
 
       <h2 class="h2 about__heading">
         <SplitText text="You deal with me," />
@@ -54,7 +60,10 @@ import { site } from '../data/site';
         {
           site.about.stack.map((group, i) => (
             <div class="about__group m-rise" style={`--i:${i}`}>
-              <dt class="about__group-name">{group.group}</dt>
+              <dt class="about__group-name">
+                <Icon name={groupGlyphs[i] ?? 'stack'} size="0.95rem" />
+                {group.group}
+              </dt>
               <dd class="about__group-items">
                 {group.items.map((item) => (
                   <span class="about__chip">{item}</span>
@@ -85,59 +94,30 @@ import { site } from '../data/site';
     border: 1px solid var(--line-soft);
   }
 
+  /* Intrinsic 2:3, uncropped and never magnified. Forcing it to 4:5 with
+     `object-fit: cover` cut into the frame and scaled what was left up past
+     the source resolution, which is where the softness came from. */
   .about__img {
+    display: block;
     width: 100%;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-    filter: saturate(0.95) contrast(1.02);
+    height: auto;
+    filter: saturate(0.86) brightness(0.94);
+    transition: filter 0.7s var(--ease);
   }
 
-  .about__placeholder {
-    aspect-ratio: 4 / 5;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    background-image:
-      linear-gradient(to right, var(--line-soft) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--line-soft) 1px, transparent 1px);
-    background-size: 3rem 3rem;
+  .about__figure:hover .about__img {
+    filter: none;
   }
 
-  .about__initials {
-    font-family: var(--font-display);
-    font-size: clamp(3.5rem, 10vw, 6rem);
-    font-weight: 500;
-    letter-spacing: -0.05em;
-    line-height: 1;
-    background: var(--grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    opacity: 0.5;
-  }
-
-  .about__hint {
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    letter-spacing: 0.1em;
-    color: var(--faint);
-  }
-
-  .about__caption {
+  /* Grades the foot of the portrait into the page so the caption has
+     something to sit on and the crop does not end on a hard edge. */
+  .about__figure::after {
+    content: '';
     position: absolute;
-    left: 0;
-    bottom: 0;
-    padding: 0.4rem 0.8rem;
-    background: var(--surface);
-    border-top: 1px solid var(--line-soft);
-    border-right: 1px solid var(--line-soft);
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
+    inset: auto 0 0 0;
+    height: 45%;
+    pointer-events: none;
+    background: linear-gradient(to top, var(--bg) 2%, transparent 92%);
   }
 
   .about__text {
@@ -175,11 +155,18 @@ import { site } from '../data/site';
   }
 
   .about__group-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-family: var(--font-mono);
     font-size: var(--step--2);
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--faint);
+    color: var(--muted);
+  }
+
+  .about__group-name :global(.icon) {
+    color: var(--accent-2);
   }
 
   .about__group-items {
@@ -201,7 +188,9 @@ import { site } from '../data/site';
 
   @media (min-width: 56rem) {
     .about__grid {
-      grid-template-columns: 0.8fr 1fr;
+      /* Fixed 22rem rather than a fraction, so the portrait is never asked to
+         render wider than its source file can sharply fill. */
+      grid-template-columns: 22rem minmax(0, 1fr);
       gap: clamp(2.5rem, 6vw, 5rem);
     }
 

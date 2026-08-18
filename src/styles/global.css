@@ -1,43 +1,74 @@
 /* ==========================================================================
    DESIGN SYSTEM  ·  "Instrument"
-   Cool silver and graphite, geometric display type, mono for anything
-   numeric. The register is engineering console, not boutique: flat surfaces,
-   hairline rules, tight tracking, one electric accent used only where the
-   interface is live.
+   Graphite and cool light, geometric display type, mono for anything numeric.
+   The register is engineering console, not boutique: flat surfaces, hairline
+   rules, tight tracking, one electric accent used only where the interface is
+   live.
+
+   Dark by construction. This is not a light theme with the values flipped:
+   the ramp is authored for emitted light, so `--deep` is a surface that sits
+   BELOW the page ground rather than an inversion of it, and every block that
+   used to invert now recedes instead. That is why no component needed its
+   own dark-mode branch.
    ========================================================================== */
 
 /* --------------------------------------------------------------- 1. tokens */
 
 :root {
-  /* Cool neutral ramp. Silver rather than warm paper. */
-  --bg: #eceef2;
-  --bg-deep: #e2e5ea;
-  --surface: #ffffff;
-  --surface-2: #f6f7f9;
-  --ink: #0a0d12;
-  --ink-2: #262c35;
-  --muted: #697382;
-  --faint: #98a1ad;
+  /* Tells the UA to render scrollbars, form controls and the canvas dark, so
+     the chrome around the page matches the page. */
+  color-scheme: dark;
 
-  --line: rgba(10, 13, 18, 0.11);
-  --line-soft: rgba(10, 13, 18, 0.06);
-  --line-hard: rgba(10, 13, 18, 0.2);
+  /* Cool neutral ramp, near-black through to a slightly blue white. */
+  --bg: #070910;
+  --bg-deep: #04050a;
+  /* The alternate section ground. Far enough off `--bg` to be seen as a
+     different block at a glance — `--bg-deep` was only three points away and
+     the two read as one continuous surface. */
+  --bg-alt: #0d121c;
+  --surface: #141924;
+  --surface-2: #1e2532;
+  /* The whole text ramp runs bright. On a near-black ground the usual trick
+     of stepping secondary text down toward mid-grey reads as switched-off
+     rather than as hierarchy: #b7c0ce looked dim in body copy at 1.5 line
+     height. Separation between the four levels is carried by small steps at
+     the TOP of the range instead, so even `--faint` stays comfortably
+     legible and every level clears AA against `--bg`. */
+  --ink: #f5f8fd;
+  --ink-2: #dbe3ee;
+  --muted: #aab5c6;
+  --faint: #8794a6;
 
-  /* One electric accent, plus a cyan for gradients and live states. */
-  --accent: #1156f0;
-  --accent-2: #00c2ff;
-  --accent-soft: rgba(17, 86, 240, 0.1);
-  --accent-line: rgba(17, 86, 240, 0.35);
+  --line: rgba(233, 237, 245, 0.16);
+  --line-soft: rgba(233, 237, 245, 0.1);
+  --line-hard: rgba(233, 237, 245, 0.32);
+
+  /* One electric accent, plus a cyan for gradients and live states. Both are
+     lifted from the light-theme originals: #1156f0 does not carry against
+     near-black, it just reads as a dark hole. */
+  --accent: #5b91ff;
+  --accent-2: #3fdcff;
+  --accent-soft: rgba(91, 145, 255, 0.16);
+  --accent-line: rgba(91, 145, 255, 0.48);
   --grad: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 100%);
 
-  /* Inverted surfaces */
-  --deep: #0a0d12;
-  --deep-2: #111721;
-  --deep-text: #e8ecf2;
-  --deep-muted: #8d97a5;
-  --deep-line: rgba(232, 236, 242, 0.14);
+  /* Recessed surfaces. Darker than the ground, not inverted from it. */
+  --deep: #04050a;
+  --deep-2: #0b0e15;
+  --deep-text: #f5f8fd;
+  --deep-muted: #aab5c6;
+  --deep-line: rgba(233, 237, 245, 0.16);
 
-  --font-display: 'Space Grotesk Variable', 'Inter Variable', system-ui, sans-serif;
+  /* Shadow on a dark ground has to be real black to register at all. */
+  --shadow: rgba(0, 0, 0, 0.72);
+
+  /* Sora for display rather than Space Grotesk. Space Grotesk has a quirk in
+     it — the splayed leg on the R, the single-storey g — that reads as design
+     studio. Sora is the same geometric family of shapes with the mannerisms
+     taken out: it holds up at 6rem in a headline and still looks like it was
+     chosen by someone who ships software rather than posters. Inter carries
+     the body copy and JetBrains Mono every numeral and label. */
+  --font-display: 'Sora Variable', 'Inter Variable', system-ui, sans-serif;
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', monospace;
 
@@ -47,12 +78,20 @@
   --step-1: clamp(1.15rem, 1.09rem + 0.3vw, 1.35rem);
   --step-2: clamp(1.42rem, 1.3rem + 0.6vw, 1.85rem);
   --step-3: clamp(1.8rem, 1.55rem + 1.25vw, 2.65rem);
-  --step-4: clamp(2.3rem, 1.8rem + 2.5vw, 3.9rem);
-  --step-5: clamp(2.8rem, 1.75rem + 5.2vw, 6.1rem);
+  --step-4: clamp(2.1rem, 1.65rem + 2.1vw, 3.3rem);
+  /* Pulled down hard from a 6.1rem cap. At the old size the hero headline
+     broke into four short lines inside its column and left a ragged void
+     beside the last one — the line was so large that the grid could not give
+     it enough width to set properly at any viewport. */
+  --step-5: clamp(2.5rem, 1.6rem + 3.3vw, 4.25rem);
 
   --container: 80rem;
   --gutter: clamp(1.15rem, 4.5vw, 4rem);
-  --section: clamp(4.5rem, 10vw, 8.5rem);
+  /* Roughly half what it was (10vw capped at 8.5rem). Now that the blocks
+     carry their own solid grounds and alternate, the separation is doing the
+     work the empty space used to: that much padding on top of a visible edge
+     just opened a dead band between every section. */
+  --section: clamp(2.75rem, 5vw, 4.5rem);
   --measure: 66ch;
 
   --radius: 4px;
@@ -137,11 +176,50 @@ select {
 .section {
   position: relative;
   padding-block: var(--section);
+  /* Solid, and alternating. Every block used to sit on a translucent wash of
+     the same colour, which meant one section ran into the next with nothing
+     but a hairline between them and the page read as one endless scroll.
+     Two grounds alternating gives every block a visible edge on both sides.
+     The hero is exempt — it is the one place the footage is the subject. */
+  background-color: var(--bg);
+  border-top: 1px solid var(--line);
 }
 
-.section + .section {
-  border-top: 1px solid var(--line-soft);
+.section--alt {
+  background-color: var(--bg-alt);
 }
+
+/* A numbered plate above each section heading. Reading "03 / RECOGNITION"
+   tells you where you are in the page and how much of it is left, which a
+   bare eyebrow never did. */
+.section__no {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background-color: var(--surface);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  align-self: flex-start;
+}
+
+.section__no::before {
+  content: attr(data-no);
+  font-weight: 600;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* No trailing rule. The flex `gap` separates the number from the label on its
+   own, and any short horizontal line here just read as a stray dash. */
 
 .skip-link {
   position: absolute;
@@ -150,7 +228,7 @@ select {
   z-index: 100;
   padding: 0.75rem 1.25rem;
   background: var(--ink);
-  color: #fff;
+  color: var(--bg);
 }
 
 .skip-link:focus {
@@ -159,39 +237,42 @@ select {
 
 /* ----------------------------------------------------------- 4. typography */
 
+/* Sora carries more weight per stem than Space Grotesk did, and it is a
+   slightly wider face, so the headings run one step heavier and a touch
+   looser than the old scale to keep the same optical density. */
 h1,
 h2,
 h3,
 h4 {
   font-family: var(--font-display);
-  font-weight: 500;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.028em;
   text-wrap: balance;
 }
 
 .display {
   font-family: var(--font-display);
   font-size: var(--step-5);
-  font-weight: 500;
-  line-height: 0.96;
-  letter-spacing: -0.042em;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.038em;
 }
 
 .h2 {
   font-family: var(--font-display);
   font-size: var(--step-4);
-  font-weight: 500;
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.032em;
 }
 
 .h3 {
   font-family: var(--font-display);
   font-size: var(--step-2);
-  font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -0.025em;
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: -0.022em;
 }
 
 /* Replaces the old italic serif flourish. Accent phrases are now rendered in
@@ -228,17 +309,9 @@ h4 {
   color: var(--muted);
 }
 
-.eyebrow::before {
-  content: '';
-  width: 1.6rem;
-  height: 1px;
-  background: var(--accent);
-  flex: none;
-}
+/* The leading rule that used to sit here is gone. It read as a stray dash in
+   front of every label rather than as a design element. */
 
-.eyebrow--plain::before {
-  display: none;
-}
 
 .lede {
   font-size: var(--step-1);
@@ -274,8 +347,10 @@ h4 {
 /* ------------------------------------------------------------- 5. controls */
 
 .btn {
+  /* The primary button is the lightest thing on the page, so its label has to
+     be the page ground rather than white-on-white. */
   --btn-bg: var(--ink);
-  --btn-fg: #fff;
+  --btn-fg: var(--bg);
   --btn-border: var(--ink);
   position: relative;
   display: inline-flex;
@@ -305,6 +380,8 @@ h4 {
   transform: translateY(-2px);
   --btn-bg: var(--accent);
   --btn-border: var(--accent);
+  --btn-fg: #fff;
+  box-shadow: 0 10px 30px -12px rgba(91, 145, 255, 0.7);
 }
 
 .btn--ghost {
@@ -323,10 +400,12 @@ h4 {
   padding: 0.55rem 0.95rem;
 }
 
+/* On a recessed block the light button needs the recessed ground as its
+   label colour, not `--ink`, which is now light itself. */
 .btn--on-ink {
-  --btn-bg: #fff;
-  --btn-fg: var(--ink);
-  --btn-border: #fff;
+  --btn-bg: var(--ink);
+  --btn-fg: var(--deep);
+  --btn-border: var(--ink);
 }
 
 .btn--on-ink:hover {
@@ -385,7 +464,7 @@ h4 {
   gap: 0.55rem;
   padding: 0.35rem 0.8rem 0.35rem 0.65rem;
   border: 1px solid var(--line);
-  border-radius: 100px;
+  border-radius: 3px;
   background: var(--surface);
   font-family: var(--font-mono);
   font-size: var(--step--2);
@@ -399,7 +478,7 @@ h4 {
   border-radius: 50%;
   background: var(--accent-2);
   flex: none;
-  box-shadow: 0 0 0 0 rgba(0, 194, 255, 0.5);
+  box-shadow: 0 0 0 0 rgba(63, 220, 255, 0.6);
 }
 
 .status--closed .status__dot {
@@ -431,6 +510,66 @@ h4 {
     transform 0.4s var(--ease);
 }
 
+/* A lamp that follows the pointer across a surface. Painted as a background
+   IMAGE rather than an overlay element, so it can never end up in front of
+   the card's own text no matter what stacking context it lands in.
+
+   `@property` is what makes the alpha animatable at all — a plain custom
+   property is a string to the transition engine and would snap. */
+@property --glow-a {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.glow {
+  --glow-a: 0;
+  background-image: radial-gradient(
+    22rem 22rem at var(--mx, 50%) var(--my, 50%),
+    rgba(91, 145, 255, var(--glow-a)),
+    transparent 68%
+  );
+  background-repeat: no-repeat;
+  transition: --glow-a 0.5s var(--ease);
+}
+
+.glow:hover,
+.glow:focus-within {
+  --glow-a: 0.2;
+}
+
+.glow--deep {
+  background-image: radial-gradient(
+    22rem 22rem at var(--mx, 50%) var(--my, 50%),
+    rgba(63, 220, 255, var(--glow-a)),
+    transparent 68%
+  );
+}
+
+.glow--deep:hover,
+.glow--deep:focus-within {
+  --glow-a: 0.16;
+}
+
+/* Hover lift for anything that should feel like a physical panel. */
+.lift {
+  transition:
+    transform 0.5s var(--ease),
+    box-shadow 0.5s var(--ease),
+    border-color 0.5s var(--ease);
+}
+
+/* A dark ground swallows a drop shadow, so the lift is sold by an accent
+   halo and a brightening edge rather than by cast shadow alone. */
+.lift:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 26px 50px -30px var(--shadow),
+    0 0 0 1px var(--accent-line),
+    0 0 40px -18px rgba(91, 145, 255, 0.55);
+  border-color: var(--accent-line);
+}
+
 .on-ink {
   background: var(--deep);
   color: var(--deep-text);
@@ -438,10 +577,6 @@ h4 {
 
 .on-ink .eyebrow {
   color: var(--deep-muted);
-}
-
-.on-ink .eyebrow::before {
-  background: var(--accent-2);
 }
 
 .on-ink .muted {
@@ -486,37 +621,405 @@ h4 {
 
 /* --------------------------------------------------- 7. ambient background */
 
-/* Fixed technical grid that drifts continuously. This is the "future moving"
-   layer: it is always in motion, but at an amplitude low enough that you read
-   it as depth rather than as an animation competing with the content. */
+/* The page sits on a fixed five-layer plate, bottom to top:
+     1. video   real footage, drained of its own palette
+     2. veil    a wash of --bg that buys back text contrast
+     3. mesh    slow accent bloom
+     4. grid    technical rule work
+     5. sweep   a single beam that crosses the viewport on a long loop
+   Everything here is always in motion, but at an amplitude low enough that it
+   reads as depth rather than as an animation competing with the content. */
 .field {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+  /* Own compositing context, so five animated layers never trigger a repaint
+     of the document flowing above them. */
+  contain: strict;
 }
 
-.field__grid {
+/* --- 1. video plate ------------------------------------------------------ */
+
+.field__video {
   position: absolute;
-  inset: -30%;
-  background-image:
-    linear-gradient(to right, rgba(10, 13, 18, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(10, 13, 18, 0.05) 1px, transparent 1px);
-  background-size: 74px 74px;
-  /* Faded at the edges so it never reads as a hard wallpaper. */
-  mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000 30%, transparent 78%);
-  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000 30%, transparent 78%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Mostly desaturated: the footage contributes movement and light, never a
+     second palette arguing with the accent. On a near-black ground it can run
+     far hotter than it could on paper — the contrast headroom under light
+     text is enormous — so this is brighter and far more present than the
+     equivalent plate would be on a light theme. */
+  filter: grayscale(0.35) contrast(1.2) brightness(0.92) saturate(1.25);
+  opacity: 0.62;
+  /* Overscanned so the slow parallax drift never exposes an edge. */
+  transform: scale(1.1);
+  will-change: transform;
 }
+
+/* Feathered at the top so the sticky header's blur has something calm to sit
+   against, and at the bottom so the footer resolves cleanly. */
+.field__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--bg) 78%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 40%, transparent) 24%,
+      color-mix(in srgb, var(--bg) 40%, transparent) 70%,
+      color-mix(in srgb, var(--bg) 84%, transparent) 100%
+    ),
+    /* Heaviest through the middle, where the reading column sits, and thinnest
+       at the edges, where the footage is free to show. */
+      radial-gradient(
+        135% 100% at 50% 40%,
+        color-mix(in srgb, var(--bg) 66%, transparent) 0%,
+        color-mix(in srgb, var(--bg) 48%, transparent) 52%,
+        color-mix(in srgb, var(--bg) 18%, transparent) 100%
+      );
+}
+
+/* --- 2. colour mesh ------------------------------------------------------ */
 
 .field__mesh {
   position: absolute;
   inset: -25%;
   background:
-    radial-gradient(30rem 30rem at 18% 20%, rgba(17, 86, 240, 0.13), transparent 62%),
-    radial-gradient(26rem 26rem at 82% 62%, rgba(0, 194, 255, 0.12), transparent 62%),
-    radial-gradient(22rem 22rem at 55% 92%, rgba(17, 86, 240, 0.08), transparent 62%);
+    radial-gradient(30rem 30rem at 18% 20%, rgba(91, 145, 255, 0.22), transparent 62%),
+    radial-gradient(26rem 26rem at 82% 62%, rgba(63, 220, 255, 0.18), transparent 62%),
+    radial-gradient(22rem 22rem at 55% 92%, rgba(91, 145, 255, 0.14), transparent 62%);
   filter: blur(10px);
+}
+
+/* ------------------------------------------------- 7b. per-block backdrops */
+
+/* Every block on the page carries its own animated backdrop, drawn from one
+   vocabulary so nine sections still read as one system. The markup is always
+   the same three spans; the variant decides what those three spans mean.
+   See BlockField.astro.
+
+   Rules that keep this from turning into noise:
+     · nothing here ever exceeds ~8% alpha against the page ground
+     · each variant moves on a different axis from its neighbours
+     · every loop is 18s or longer, so no two are ever visibly in phase */
+
+.has-field {
+  position: relative;
+  isolation: isolate;
+  /* `clip`, not `hidden`: `hidden` would turn each section into a scroll
+     container and break the sticky panels inside Systems and Process. */
+  overflow: clip;
+}
+
+/* Anything that carries content has to be lifted off the backdrop. */
+.has-field > *:not(.bfield) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ...but not the absolutely-positioned decoration. A `.scanline` is a direct
+   child of the Contact block, and the rule above outspecifies its own
+   `position: absolute` — which dropped it back into the flow as a block 28%
+   of the section tall and shoved the whole block down the page. It still
+   needs the z-index; it must keep its own positioning. */
+.has-field > .scanline {
+  position: absolute;
+}
+
+.bfield {
+  position: absolute;
+  /* Overscanned by the parallax amplitude, so drifting the layer against the
+     block never exposes a bare strip at the top or bottom edge. The section's
+     own `overflow: clip` trims the excess. */
+  inset: calc(var(--drift, 0px) * -1.7);
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+
+  --bf-1: rgba(91, 145, 255, 0.2);
+  --bf-2: rgba(63, 220, 255, 0.16);
+  --bf-line: rgba(233, 237, 245, 0.06);
+  --bf-dot: rgba(233, 237, 245, 0.09);
+}
+
+/* Recessed blocks sit on a darker ground, so the same figures need more
+   signal to register at all. */
+.bfield--deep {
+  --bf-1: rgba(91, 145, 255, 0.28);
+  --bf-2: rgba(63, 220, 255, 0.22);
+  --bf-line: rgba(233, 237, 245, 0.08);
+  --bf-dot: rgba(233, 237, 245, 0.12);
+}
+
+.bfield__a,
+.bfield__b,
+.bfield__c {
+  position: absolute;
+  display: block;
+}
+
+/* --- beam: two standing light planes, breathing in place ------------------ */
+/* These are deliberately fixed in position. An earlier revision had them
+   travelling across the block, which read as a spotlight waving over the
+   page — too showy, and it dragged the eye off the copy every few seconds.
+   Held still and slowly breathing, the same two planes give depth without
+   ever asking to be watched. */
+
+.bfield--beam .bfield__a,
+.bfield--beam .bfield__b {
+  top: -30%;
+  bottom: -30%;
+  width: 34%;
+  filter: blur(46px);
+  transform: skewX(-16deg);
+}
+
+.bfield--beam .bfield__a {
+  left: 4%;
+  background: linear-gradient(100deg, transparent, var(--bf-1), transparent);
+}
+
+.bfield--beam .bfield__b {
+  right: 10%;
+  width: 22%;
+  background: linear-gradient(100deg, transparent, var(--bf-2), transparent);
+}
+
+.bfield--beam .bfield__c {
+  inset: -20% -10% auto auto;
+  width: 46rem;
+  height: 46rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--bf-1), transparent 66%);
+  filter: blur(20px);
+}
+
+/* --- scan: a readout tracking down a ruled plate -------------------------- */
+/* One hairline, no glow bar behind it. A 1px rule crossing the block reads as
+   an instrument taking a measurement; a blurred band doing the same thing
+   reads as a spotlight, which is the effect this deliberately avoids. */
+
+.bfield--scan .bfield__a {
+  inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 50% 0%, var(--bf-1), transparent 72%);
+  filter: blur(24px);
+}
+
+.bfield--scan .bfield__b {
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--bf-2) 30%, var(--bf-2) 70%, transparent);
+}
+
+.bfield--scan .bfield__c {
+  inset: 0;
+  background-image: linear-gradient(to right, var(--bf-line) 1px, transparent 1px);
+  background-size: 5.5rem 100%;
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+/* --- horizon: contour rules travelling toward the reader ------------------ */
+/* Horizontal rules only. A crossed grid tiles the block with squares and
+   turns the backdrop into graph paper, which fights the content instead of
+   sitting behind it; a ladder of contours reads as depth. */
+
+.bfield--horizon .bfield__a {
+  inset-inline: -20%;
+  top: 0;
+  /* Twice the block height so a one-interval travel loops seamlessly. */
+  height: 200%;
+  background-image: linear-gradient(to bottom, var(--bf-line) 1px, transparent 1px);
+  background-size: 100% 5.5rem;
+  mask-image: radial-gradient(ellipse 70% 55% at 50% 50%, #000 15%, transparent 74%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 50%, #000 15%, transparent 74%);
+}
+
+.bfield--horizon .bfield__b {
+  inset: auto -15% -35% -15%;
+  height: 34rem;
+  background: radial-gradient(ellipse 60% 100% at 50% 100%, var(--bf-1), transparent 70%);
+  filter: blur(24px);
+}
+
+.bfield--horizon .bfield__c {
+  inset: -20% auto auto -15%;
+  width: 40rem;
+  height: 40rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--bf-2), transparent 66%);
+  filter: blur(26px);
+}
+
+/* --- streams: vertical data columns at two speeds ------------------------- */
+
+.bfield--streams .bfield__a,
+.bfield--streams .bfield__b {
+  inset-inline: 0;
+  top: 0;
+  /* Twice the block height, so a -50% travel loops seamlessly. */
+  height: 200%;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 5.5rem,
+    var(--bf-dot) 5.5rem,
+    var(--bf-dot) calc(5.5rem + 2px),
+    transparent calc(5.5rem + 2px),
+    transparent 11rem
+  );
+  background-size: 100% 11rem;
+  mask-image: repeating-linear-gradient(to right, transparent 0, transparent 3.5rem, #000 3.5rem, #000 calc(3.5rem + 1px));
+  -webkit-mask-image: repeating-linear-gradient(to right, transparent 0, transparent 3.5rem, #000 3.5rem, #000 calc(3.5rem + 1px));
+  opacity: 0.75;
+}
+
+.bfield--streams .bfield__b {
+  mask-image: repeating-linear-gradient(to right, transparent 0, transparent 7rem, #000 7rem, #000 calc(7rem + 2px));
+  -webkit-mask-image: repeating-linear-gradient(to right, transparent 0, transparent 7rem, #000 7rem, #000 calc(7rem + 2px));
+  opacity: 0.5;
+}
+
+.bfield--streams .bfield__c {
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 70% 30%, var(--bf-2), transparent 68%);
+  filter: blur(26px);
+}
+
+/* --- mesh: two accent blooms on slow orbits ------------------------------- */
+
+.bfield--mesh .bfield__a,
+.bfield--mesh .bfield__b {
+  width: 40rem;
+  height: 40rem;
+  border-radius: 50%;
+  filter: blur(24px);
+}
+
+.bfield--mesh .bfield__a {
+  top: -18%;
+  left: -10%;
+  background: radial-gradient(circle, var(--bf-1), transparent 64%);
+}
+
+.bfield--mesh .bfield__b {
+  bottom: -22%;
+  right: -8%;
+  background: radial-gradient(circle, var(--bf-2), transparent 64%);
+}
+
+.bfield--mesh .bfield__c {
+  inset: 0;
+  background-image: radial-gradient(var(--bf-dot) 1px, transparent 1px);
+  background-size: 2.4rem 2.4rem;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 10%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 10%, transparent 72%);
+  opacity: 0.7;
+}
+
+/* --- rings: concentric arcs, counter-rotating ----------------------------- */
+
+.bfield--rings .bfield__a,
+.bfield--rings .bfield__b {
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  border: 1px solid var(--bf-line);
+  /* Only part of each ring is drawn, which is what makes rotation legible. */
+  mask-image: conic-gradient(#000 0deg 100deg, transparent 100deg 180deg, #000 180deg 280deg, transparent 280deg 360deg);
+  -webkit-mask-image: conic-gradient(#000 0deg 100deg, transparent 100deg 180deg, #000 180deg 280deg, transparent 280deg 360deg);
+}
+
+.bfield--rings .bfield__a {
+  width: 46rem;
+  height: 46rem;
+  margin: -23rem 0 0 -23rem;
+  border-color: var(--bf-dot);
+}
+
+.bfield--rings .bfield__b {
+  width: 72rem;
+  height: 72rem;
+  margin: -36rem 0 0 -36rem;
+}
+
+.bfield--rings .bfield__c {
+  inset: 0;
+  background: radial-gradient(ellipse 55% 55% at 50% 50%, var(--bf-1), transparent 70%);
+  filter: blur(30px);
+}
+
+/* --- aurora: one huge conic bloom, turning ------------------------------- */
+
+.bfield--aurora .bfield__a {
+  top: 50%;
+  left: 50%;
+  width: 130%;
+  aspect-ratio: 1;
+  margin: -65% 0 0 -65%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    var(--bf-1) 70deg,
+    transparent 140deg,
+    var(--bf-2) 220deg,
+    transparent 300deg,
+    var(--bf-1) 360deg
+  );
+  filter: blur(60px);
+  opacity: 0.85;
+}
+
+.bfield--aurora .bfield__b {
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, var(--bf-2), transparent 70%);
+  filter: blur(40px);
+}
+
+.bfield--aurora .bfield__c {
+  inset: 0;
+  background-image: linear-gradient(to bottom, var(--bf-line) 1px, transparent 1px);
+  background-size: 100% 4.5rem;
+  mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent);
+}
+
+/* --- halo: a single wide bloom breathing behind the block ----------------- */
+
+.bfield--halo .bfield__a {
+  top: 50%;
+  left: 50%;
+  width: 60rem;
+  height: 60rem;
+  margin: -30rem 0 0 -30rem;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--bf-1), var(--bf-2), transparent 55%, var(--bf-1));
+  filter: blur(70px);
+  opacity: 0.7;
+}
+
+.bfield--halo .bfield__b {
+  inset: 0;
+  background-image: radial-gradient(var(--bf-dot) 1px, transparent 1px);
+  background-size: 2.1rem 2.1rem;
+  mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000, transparent 74%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000, transparent 74%);
+  opacity: 0.6;
+}
+
+.bfield--halo .bfield__c {
+  inset: auto -12% -25% auto;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--bf-2), transparent 64%);
+  filter: blur(28px);
 }
 
 /* --------------------------------------------------------------- 8. motion */
@@ -578,19 +1081,14 @@ h4 {
 
 /* ---- ambient loops ---- */
 
-@keyframes field-drift {
-  from { transform: translate3d(-1.5%, -1%, 0); }
-  to { transform: translate3d(1.5%, 1.5%, 0); }
-}
-
 @keyframes mesh-drift {
   from { transform: translate3d(-3%, -2%, 0) scale(1); }
   to { transform: translate3d(4%, 3%, 0) scale(1.12); }
 }
 
 @keyframes status-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(0, 194, 255, 0.5); }
-  70%, 100% { box-shadow: 0 0 0 7px rgba(0, 194, 255, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(63, 220, 255, 0.6); }
+  70%, 100% { box-shadow: 0 0 0 7px rgba(63, 220, 255, 0); }
 }
 
 @keyframes scan-sweep {
@@ -604,10 +1102,96 @@ h4 {
   to { transform: translateX(130%) skewX(-12deg); }
 }
 
+/* ---- backdrop loops ---- */
+
+@keyframes video-drift {
+  from { transform: scale(1.1) translate3d(-1.2%, -0.8%, 0); }
+  to { transform: scale(1.16) translate3d(1.2%, 1%, 0); }
+}
+
+/* Standing light planes swell and subside without ever leaving their post. */
+@keyframes plane-breathe {
+  from { opacity: 0.35; transform: skewX(-16deg) scaleX(0.88); }
+  to { opacity: 0.95; transform: skewX(-16deg) scaleX(1.12); }
+}
+
+@keyframes scan-down {
+  0% { transform: translateY(-40%); opacity: 0; }
+  10%, 88% { opacity: 1; }
+  100% { transform: translateY(360%); opacity: 0; }
+}
+
+@keyframes contour-fall {
+  from { transform: translate3d(0, -50%, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes stream-fall {
+  from { transform: translateY(-50%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes orbit-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(22%, 14%, 0) scale(1.18); }
+}
+
+@keyframes orbit-b {
+  from { transform: translate3d(0, 0, 0) scale(1.12); }
+  to { transform: translate3d(-18%, -16%, 0) scale(1); }
+}
+
+@keyframes turn {
+  from { transform: rotate(0turn); }
+  to { transform: rotate(1turn); }
+}
+
+@keyframes turn-back {
+  from { transform: rotate(1turn); }
+  to { transform: rotate(0turn); }
+}
+
+@keyframes breathe {
+  from { opacity: 0.45; transform: scale(0.94); }
+  to { opacity: 0.9; transform: scale(1.06); }
+}
+
+@keyframes dot-drift {
+  from { background-position: 0 0; }
+  to { background-position: 2.4rem 2.4rem; }
+}
+
+/* ---- new content motion ---- */
+
+@keyframes slide-from-left {
+  from { opacity: 0; transform: translateX(-3.5rem); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes slide-from-right {
+  from { opacity: 0; transform: translateX(3.5rem); }
+  to { opacity: 1; transform: none; }
+}
+
+/* A card that arrives lying slightly away from the reader and settles flat. */
+@keyframes tilt-settle {
+  from { opacity: 0; transform: perspective(1200px) rotateX(9deg) translateY(2.5rem) scale(0.97); }
+  to { opacity: 1; transform: perspective(1200px) rotateX(0) translateY(0) scale(1); }
+}
+
+@keyframes float-soft {
+  from { transform: translateY(-0.4rem); }
+  to { transform: translateY(0.4rem); }
+}
+
+@keyframes glint {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  .field__grid {
-    animation: field-drift 30s ease-in-out infinite alternate;
-    will-change: transform;
+  .field__video {
+    animation: video-drift 40s ease-in-out infinite alternate;
   }
 
   .field__mesh {
@@ -617,6 +1201,44 @@ h4 {
 
   .status__dot {
     animation: status-pulse 2.6s ease-out infinite;
+  }
+
+  /* ---- backdrop bindings ------------------------------------------------ */
+
+  .bfield--beam .bfield__a { animation: plane-breathe 21s ease-in-out infinite alternate; }
+  .bfield--beam .bfield__b { animation: plane-breathe 27s ease-in-out infinite alternate -9s; }
+  .bfield--beam .bfield__c { animation: breathe 19s ease-in-out infinite alternate; }
+
+  .bfield--scan .bfield__a { animation: breathe 24s ease-in-out infinite alternate; }
+  .bfield--scan .bfield__b { animation: scan-down 21s linear infinite; }
+  .bfield--scan .bfield__c { animation: breathe 30s ease-in-out infinite alternate -12s; }
+
+  .bfield--horizon .bfield__a { animation: contour-fall 16s linear infinite; }
+  .bfield--horizon .bfield__b { animation: breathe 20s ease-in-out infinite alternate; }
+  .bfield--horizon .bfield__c { animation: breathe 26s ease-in-out infinite alternate -8s; }
+
+  .bfield--streams .bfield__a { animation: stream-fall 26s linear infinite; }
+  .bfield--streams .bfield__b { animation: stream-fall 38s linear infinite; }
+  .bfield--streams .bfield__c { animation: breathe 22s ease-in-out infinite alternate; }
+
+  .bfield--mesh .bfield__a { animation: orbit-a 28s ease-in-out infinite alternate; }
+  .bfield--mesh .bfield__b { animation: orbit-b 34s ease-in-out infinite alternate; }
+  .bfield--mesh .bfield__c { animation: dot-drift 18s linear infinite; }
+
+  .bfield--rings .bfield__a { animation: turn 60s linear infinite; }
+  .bfield--rings .bfield__b { animation: turn-back 96s linear infinite; }
+  .bfield--rings .bfield__c { animation: breathe 21s ease-in-out infinite alternate; }
+
+  .bfield--aurora .bfield__a { animation: turn 72s linear infinite; }
+  .bfield--aurora .bfield__b { animation: breathe 23s ease-in-out infinite alternate; }
+
+  .bfield--halo .bfield__a { animation: turn 84s linear infinite; }
+  .bfield--halo .bfield__b { animation: dot-drift 20s linear infinite; }
+  .bfield--halo .bfield__c { animation: breathe 25s ease-in-out infinite alternate -6s; }
+
+  .bfield__a,
+  .bfield__b {
+    will-change: transform;
   }
 
   /* ---- on-load entrance ---- */
@@ -686,6 +1308,32 @@ h4 {
       animation-range: entry 5% entry 60%;
     }
 
+    .m-left {
+      animation: slide-from-left linear both;
+      animation-timeline: view();
+      animation-range: entry calc(6% + var(--i, 0) * 6%) entry calc(52% + var(--i, 0) * 6%);
+    }
+
+    .m-right {
+      animation: slide-from-right linear both;
+      animation-timeline: view();
+      animation-range: entry calc(6% + var(--i, 0) * 6%) entry calc(52% + var(--i, 0) * 6%);
+    }
+
+    .m-tilt {
+      animation: tilt-settle linear both;
+      animation-timeline: view();
+      animation-range: entry calc(4% + var(--i, 0) * 6%) entry calc(56% + var(--i, 0) * 6%);
+    }
+
+    /* Backdrops that track the block's own passage through the viewport, so
+       each section's ground moves at a different rate from its content. */
+    .m-para {
+      animation: drift-up linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+
     .m-progress {
       animation: grow-x linear both;
       animation-timeline: scroll(root block);
@@ -706,8 +1354,26 @@ h4 {
     .js .m-rule,
     .js .m-count,
     .js .m-scale,
+    .js .m-left,
+    .js .m-right,
+    .js .m-tilt,
     .js .split--scroll .split__i {
       opacity: 0;
+    }
+
+    .js .m-left.is-in {
+      animation: slide-from-left 1s var(--ease) both;
+      animation-delay: calc(var(--i, 0) * 90ms);
+    }
+
+    .js .m-right.is-in {
+      animation: slide-from-right 1s var(--ease) both;
+      animation-delay: calc(var(--i, 0) * 90ms);
+    }
+
+    .js .m-tilt.is-in {
+      animation: tilt-settle 1.05s var(--ease) both;
+      animation-delay: calc(var(--i, 0) * 90ms);
     }
 
     .js .m-rise.is-in {
@@ -742,6 +1408,18 @@ h4 {
   .sheen:hover::after {
     animation: sheen-sweep 1s var(--ease) forwards;
   }
+
+  /* Continuous, tiny, and staggered by --i so a row of floating things never
+     bobs in unison. */
+  .m-float {
+    animation: float-soft 7s ease-in-out infinite alternate;
+    animation-delay: calc(var(--i, 0) * -1.4s);
+  }
+
+  .m-glint {
+    animation: glint 3.4s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * -0.8s);
+  }
 }
 
 /* Word-mask mechanics. clip-path, not overflow, so glyphs that lean or extend
@@ -753,7 +1431,9 @@ h4 {
 .split__w {
   display: inline-block;
   vertical-align: bottom;
-  margin-right: 0.26em;
+  /* No margin-right. The gap between words is a real space character in the
+     markup now (see SplitText.astro); a margin on top of it would double the
+     word spacing. */
   padding-bottom: 0.18em;
   margin-bottom: -0.18em;
   clip-path: inset(-0.6em -0.3em 0 -0.2em);
@@ -780,7 +1460,7 @@ h4 {
   inset: -20% -40%;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(100deg, transparent 44%, rgba(255, 255, 255, 0.6) 50%, transparent 56%);
+  background: linear-gradient(100deg, transparent 44%, rgba(233, 237, 245, 0.13) 50%, transparent 56%);
   transform: translateX(-130%) skewX(-12deg);
 }
 
@@ -792,7 +1472,7 @@ h4 {
   top: 0;
   height: 28%;
   pointer-events: none;
-  background: linear-gradient(to bottom, transparent, rgba(0, 194, 255, 0.09), transparent);
+  background: linear-gradient(to bottom, transparent, rgba(63, 220, 255, 0.11), transparent);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -815,6 +1495,17 @@ h4 {
   }
 
   .scanline { display: none; }
+
+  /* The only layer left with no still state worth showing is the travelling
+     hairline, which parks off the top edge. Every other layer is a bloom or
+     rule work that holds its position, so the blocks keep their depth. */
+  .bfield--scan .bfield__b {
+    display: none;
+  }
+
+  .lift:hover {
+    transform: none;
+  }
 }
 
 /* ---------------------------------------------------------------- 9. prose */

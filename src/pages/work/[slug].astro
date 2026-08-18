@@ -85,16 +85,9 @@ const facts = [
           }
         </dl>
 
-        {
-          entry.data.demo && (
-            <a class="btn case__demo" href={`/#${entry.data.demo}`}>
-              Try the live demo
-              <span class="btn__arrow" aria-hidden="true">
-                →
-              </span>
-            </a>
-          )
-        }
+        {/* The live-demo link is withdrawn while the demos block is off the
+            home page — it would have pointed at an anchor that no longer
+            exists and dumped the reader at the top of the page. */}
       </div>
     </header>
 

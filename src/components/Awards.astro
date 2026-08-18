@@ -1,12 +1,46 @@
 ---
+import { Image } from 'astro:assets';
 import SplitText from './SplitText.astro';
+import BlockField from './BlockField.astro';
+import Icon from './Icon.astro';
+import trophy from '../assets/mte-best-innovation-trophy.jpeg';
+import ceremony from '../assets/mte-award-ceremony.jpeg';
+import wall from '../assets/mte-award-winners-wall.jpg';
 import { site } from '../data/site';
+
+/**
+ * Evidence for the list above. A row of award titles is a claim; the trophy
+ * with the category engraved on it is the receipt, which is the whole reason
+ * these are worth the page weight.
+ *
+ * Each is shown whole rather than cropped to a shared shape, so a tall
+ * trophy shot and a wide group shot simply sit at different heights.
+ */
+const proof = [
+  {
+    src: trophy,
+    caption: 'Best Innovation Award · IIA',
+    alt: 'The International Innovation Awards Best Innovation Award trophy from the 25th Malaysia Technology Expo.',
+  },
+  {
+    src: ceremony,
+    caption: 'Gold Award presentation · MTE',
+    alt: 'The project team on stage at the Malaysia Technology Expo holding Gold Award certificates and medals.',
+  },
+  {
+    src: wall,
+    caption: 'Award winners’ display · MTE',
+    alt: 'The Malaysia Technology Expo award winners display wall, with the trophies on plinths.',
+  },
+];
 ---
 
-<section class="section awards" id="awards">
+<section class="section awards has-field" id="awards">
+  <BlockField variant="rings" depth="3rem" />
+
   <div class="container">
     <header class="awards__head">
-      <p class="eyebrow m-rise">Recognition</p>
+      <p class="section__no m-rise" data-no="03">Recognition</p>
       <h2 class="h2">
         <SplitText text="Judged by people with" />
         <SplitText text="no reason to be kind." offset={4} italic />
@@ -21,7 +55,12 @@ import { site } from '../data/site';
       {
         site.awards.map((award, i) => (
           <li class="awards__row m-rise" style={`--i:${i % 3}`}>
-            <span class="index awards__k">{String(i + 1).padStart(2, '0')}</span>
+            <span class="awards__k">
+              <span class="awards__glyph" data-tier={award.tier}>
+                <Icon name="award" size="1.1rem" />
+              </span>
+              <span class="index">{String(i + 1).padStart(2, '0')}</span>
+            </span>
 
             <div class="awards__main">
               <h3 class:list={['awards__title', { 'is-top': award.tier === 'top' }]}>
@@ -40,6 +79,29 @@ import { site } from '../data/site';
         ))
       }
     </ol>
+
+    <ul class="proof">
+      {
+        proof.map((item, i) => (
+          <li class="proof__item m-rise" style={`--i:${i}`}>
+            <figure class="proof__figure ticked glow">
+              <Image
+                class="proof__img"
+                src={item.src}
+                alt={item.alt}
+                widths={[380, 560, 760]}
+                sizes="(min-width: 46rem) 30vw, 92vw"
+                format="webp"
+                quality={80}
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption class="proof__caption">{item.caption}</figcaption>
+            </figure>
+          </li>
+        ))
+      }
+    </ul>
   </div>
 </section>
 
@@ -54,7 +116,7 @@ import { site } from '../data/site';
   .awards__list {
     list-style: none;
     padding: 0;
-    margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+    margin: clamp(1.75rem, 3.5vw, 2.75rem) 0 0;
   }
 
   .awards__row {
@@ -89,6 +151,40 @@ import { site } from '../data/site';
 
   .awards__k {
     grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  /* Only the top award's rosette carries the gradient, matching the rule the
+     titles already follow: marking all four would mark none. */
+  .awards__glyph {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    color: var(--faint);
+    transition:
+      color 0.5s var(--ease),
+      border-color 0.5s var(--ease),
+      transform 0.5s var(--ease);
+  }
+
+  .awards__glyph[data-tier='top'] {
+    color: var(--accent-2);
+    border-color: var(--accent-line);
+  }
+
+  .awards__glyph[data-tier='gold'] {
+    color: var(--ink-2);
+  }
+
+  .awards__row:hover .awards__glyph {
+    color: var(--accent-2);
+    border-color: var(--accent-line);
+    transform: scale(1.08);
   }
 
   .awards__main {
@@ -133,6 +229,81 @@ import { site } from '../data/site';
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--faint);
+  }
+
+  /* --- proof gallery ------------------------------------------------------ */
+
+  .proof {
+    list-style: none;
+    padding: 0;
+    margin: clamp(1.75rem, 3.5vw, 2.75rem) 0 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(0.85rem, 2vw, 1.25rem);
+  }
+
+  /* Every photograph is shown whole, at its own aspect ratio.
+     The previous version forced each one into a fixed grid cell with
+     `object-fit: cover` and scaled it on hover, which cropped hard into the
+     middle of the frame and blew the pixels up past their source resolution —
+     that zoomed, soft, jagged look. Nothing here crops or magnifies now:
+     the figure takes the shape of its picture, and the picture is only ever
+     rendered smaller than the file it came from. */
+  .proof__figure {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+    transition:
+      border-color 0.55s var(--ease),
+      transform 0.55s var(--ease),
+      box-shadow 0.55s var(--ease);
+  }
+
+  .proof__figure:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-line);
+    box-shadow:
+      0 30px 60px -40px var(--shadow),
+      0 0 50px -26px rgba(91, 145, 255, 0.5);
+  }
+
+  .proof__img {
+    display: block;
+    width: 100%;
+    /* Intrinsic. No aspect-ratio, no object-fit, no crop. */
+    height: auto;
+    /* Only a light hold-back: these are bright daylight photographs on a
+       near-black page. Heavier grading was reading as muddy rather than as
+       part of the palette. */
+    filter: saturate(0.86) brightness(0.94);
+    transition: filter 0.7s var(--ease);
+  }
+
+  .proof__figure:hover .proof__img {
+    filter: none;
+  }
+
+  .proof__caption {
+    display: block;
+    padding: 0.75rem 0.9rem 0.85rem;
+    border-top: 1px solid var(--line-soft);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  @media (min-width: 46rem) {
+    /* Three columns of equal width, each item hugging the top of its cell so
+       differing picture heights simply stagger instead of being stretched to
+       match one another. */
+    .proof {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: start;
+    }
   }
 
   @media (min-width: 52rem) {
