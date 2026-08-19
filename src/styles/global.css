@@ -1054,17 +1054,35 @@ h4 {
   }
 }
 
-/* The ambient half of the headline: a specular pass that travels letter by
-   letter along the line and is gone for most of the cycle. It is a highlight
-   moving over the type, NOT a colour cycling inside it — one bright moment
-   every several seconds, which is why it can loop forever without becoming
-   the thing you look at. */
+/* The ambient half of the headline: a charge that travels letter by letter
+   along the line and is gone for most of the cycle. At its peak the glyph
+   brightens, throws a short cyan bloom, and splits a hairline of chromatic
+   fringe either side of itself — the artefact a display leaves when it
+   refreshes faster than the eye. That fringe is what reads as a screen
+   rather than as ink, and it is the whole reason the effect lands as
+   futuristic instead of merely shiny.
+
+   Both properties are written with explicit identity values at rest rather
+   than `none`, because a shadow list can only interpolate against another
+   shadow list of the same length. */
 @keyframes char-gleam {
   0%, 68%, 100% {
     filter: brightness(1) drop-shadow(0 0 0 rgba(120, 205, 255, 0));
+    text-shadow:
+      0 0 0 rgba(63, 220, 255, 0),
+      0 0 0 rgba(91, 145, 255, 0);
   }
-  78% {
-    filter: brightness(1.4) drop-shadow(0 0 20px rgba(120, 205, 255, 0.45));
+  76% {
+    filter: brightness(1.45) drop-shadow(0 0 22px rgba(120, 205, 255, 0.5));
+    text-shadow:
+      0.055em 0 0 rgba(63, 220, 255, 0.55),
+      -0.055em 0 0 rgba(91, 145, 255, 0.5);
+  }
+  84% {
+    filter: brightness(1.12) drop-shadow(0 0 10px rgba(120, 205, 255, 0.2));
+    text-shadow:
+      0 0 0 rgba(63, 220, 255, 0),
+      0 0 0 rgba(91, 145, 255, 0);
   }
 }
 
@@ -1106,6 +1124,22 @@ h4 {
 @keyframes grow-x {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
+}
+
+/* ---- scroll-linked ---- */
+
+/* The hero settling back as it leaves. It stops well short of transparent:
+   at zero the top of the page reads as broken rather than as depth. */
+@keyframes hero-recede {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0.38; transform: translate3d(0, -2.5rem, 0) scale(0.985); }
+}
+
+/* Backdrop drift. Percentages of the layer's own height, so the amount of
+   parallax is the same on a short block and a tall one. */
+@keyframes field-parallax {
+  from { transform: translate3d(0, -7%, 0); }
+  to { transform: translate3d(0, 7%, 0); }
 }
 
 /* ---- ambient loops ---- */
@@ -1261,18 +1295,85 @@ h4 {
   .rise-4 { animation-delay: 0.36s; }
   .rise-5 { animation-delay: 0.48s; }
 
-  /* No scroll-driven motion.
+  /* ---- scroll-driven reveal --------------------------------------------- */
 
-     Everything on this page used to reveal itself as it came into view:
-     headings, cards, rules, the metric roll-up, the parallax on the block
-     backdrops, and the hero fading out as you left it. All of it is gone.
-     Content is simply present when you arrive at it.
+  /* Scroll motion, on VIEW TIMELINES rather than on an IntersectionObserver.
+     That distinction is why it is affordable this time round: the animation
+     is declared once in CSS and driven from the element's own position in the
+     scrollport, so scrolling the page costs no script, no observer callbacks
+     and no main-thread work at all. The earlier version of this site did the
+     same effect in JavaScript and it was deleted for good reason.
 
-     What is left moves on its own clock rather than on the scrollbar: the
-     hero headline on first load, the ambient video and its blooms, and
-     hover states. Removing the reveals also removed the reason for the
-     IntersectionObserver fallback in Base.astro, which existed only to
-     emulate them in browsers without view timelines. */
+     Everything is behind @supports. A browser without view timelines never
+     applies the `both` fill that would otherwise hold an element at zero
+     opacity, so it gets the content plainly present and un-animated. Nothing
+     on this page is hidden behind a feature the browser might not have. */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-in 1s var(--ease) both;
+      animation-timeline: view();
+      /* Begins as the element clears the bottom edge and is finished well
+         before the middle of the screen, so nothing is still arriving by the
+         time it is being read. */
+      animation-range: entry 8% cover 26%;
+    }
+
+    /* A list or grid whose children arrive one after another. The stagger
+       has to live in the RANGE, not in a delay: a scroll-driven animation has
+       no clock to delay against, so "later" can only mean "further up the
+       scrollport". Children already carry `--i` for their hover and entrance
+       ordering, so the offset costs no extra markup.
+
+       Measured against `cover` at both ends rather than `entry`, and that is
+       not a detail. The entry range is only as long as the element is TALL,
+       so on a row of short cards a 5% step works out at about eight pixels of
+       scroll between one card and the next — a stagger nobody could see. The
+       cover range runs a viewport-height longer, which is what gives the step
+       enough room to read as a sequence. */
+    .reveal-set > * {
+      animation: reveal-in 0.9s var(--ease) both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(6% + var(--i, 0) * 6%)
+        cover calc(30% + var(--i, 0) * 6%);
+    }
+
+    /* The hero recedes as you leave it rather than scrolling away rigidly.
+       Bound to `exit`, so it only starts once the block is genuinely on its
+       way off screen, and it never goes fully transparent — at zero the top
+       of the page reads as broken rather than as depth. */
+    .hero__inner {
+      animation: hero-recede linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 90%;
+    }
+
+    /* Parallax on the section backdrops. The layer drifts against the scroll
+       at a fraction of its speed, which is the whole trick: that mismatch is
+       what tells the eye the ground is further away than the type standing on
+       it. Deliberately on the FIELD and not on the three layers inside it —
+       `.bfield` clips, which makes it a scroll container, and a view timeline
+       inside a box that never scrolls resolves against nothing and freezes.
+       Putting it here also leaves each variant's own ambient loop running
+       underneath, untouched.
+
+       The block is over-sized by the same order as the drift so that moving
+       it can never pull its own edge into the section. */
+    .bfield {
+      inset-block: -14%;
+      animation: field-parallax linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+
+    /* Opt-out for a block whose own content is pinned. Behind a sticky card
+       a backdrop moving at a second rate does not read as depth, it reads as
+       drift. */
+    .no-parallax .bfield {
+      inset-block: 0;
+      animation: none;
+    }
+  }
 
   .split--load .split__i {
     animation: word-up 0.95s var(--ease) both;
@@ -1280,12 +1381,12 @@ h4 {
   }
 
   /* Two animations on one element: the entrance, which settles and stays
-     settled, and the gleam, which runs forever on its own clock. They share no
-     property — the entrance owns `transform`/`opacity`, the gleam owns
-     `filter` — so neither overwrites the other's fill.
+     settled, and the gleam, which runs forever on its own clock. They share
+     no property — the entrance owns `transform` and `opacity`, the gleam owns
+     `filter` and `text-shadow` — so neither overwrites the other's fill.
 
-     The gleam's per-letter delay is slightly longer than the entrance's, which
-     is what tips it from "every letter flashes" into a highlight that travels
+     The gleam's per-letter delay is longer than the entrance's, which is what
+     tips it from "every letter flashes at once" into a charge that travels
      the length of the line. It starts after the whole cascade has landed. */
   .split--load.split--chars .split__i {
     animation:
@@ -1294,6 +1395,21 @@ h4 {
     animation-delay:
       calc(var(--base, 0ms) + var(--i, 0) * 26ms),
       calc(var(--base, 0ms) + 1.9s + var(--i, 0) * 34ms);
+  }
+
+  /* Once the cascade has landed the script marks the headline live, and the
+     entrance is DROPPED here. That is the point of this rule: a running
+     animation outranks every normal declaration, so while `char-in` is still
+     in force nothing else can touch `transform` — and `transform` is exactly
+     what the pointer needs in order to move the letters (see Hero.astro).
+
+     The gleam has to be restated rather than left alone, because dropping one
+     animation from a list means rewriting the list. Its clock restarts; no
+     letter is anywhere near a peak at that moment, so the restart cannot be
+     seen. */
+  [data-kinetic="live"] .split--chars .split__i {
+    animation: char-gleam 6s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * 34ms);
   }
 
   .sheen-host:hover .sheen::after,
@@ -1348,6 +1464,22 @@ h4 {
   /* Hinged just under the baseline rather than through the middle, so the
      glyph pivots up off the mask edge instead of folding in half. */
   transform-origin: 50% 88%;
+}
+
+/* Pointer kinetics. `--pull` is 0 at rest and 1 directly under the cursor,
+   written per letter by the script in Hero.astro. Everything the pointer does
+   to the type is derived from that one number HERE rather than decided in
+   JavaScript, so how the effect feels stays tunable in CSS.
+
+   The transition is doing more work than it looks. The script writes a fresh
+   `--pull` every frame; easing each write over half a second is what turns a
+   run of discrete jumps into type that swells toward the cursor and settles
+   again behind it. Without it the letters snap. */
+[data-kinetic="live"] .split__i {
+  transform:
+    translate3d(0, calc(var(--pull, 0) * -0.62rem), 0)
+    scale(calc(1 + var(--pull, 0) * 0.055));
+  transition: transform 0.5s var(--ease);
 }
 
 /* One gradient stretched across the whole clause and sampled once per letter,

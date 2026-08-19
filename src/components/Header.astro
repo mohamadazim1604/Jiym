@@ -41,6 +41,11 @@ const links = [
       </a>
     </div>
   </div>
+
+  {/* Reading position, drawn on the rule the whole page already looks at.
+      Scroll-linked in CSS with no listener behind it; where scroll timelines
+      are missing it stays at scaleX(0) and simply is not there. */}
+  <span class="header__progress" aria-hidden="true"></span>
 </header>
 
 <script>
@@ -118,6 +123,25 @@ const links = [
     z-index: 50;
     background-color: var(--bg);
     border-bottom: 1px solid var(--line-soft);
+  }
+
+  /* Scroll progress. Sits ON the bottom border rather than under it, so it
+     reads as the rule lighting up rather than as a second line of chrome. */
+  .header__progress {
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 2px;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    background: linear-gradient(to right, var(--accent), var(--accent-2));
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .header__progress {
+      animation: grow-x linear both;
+      animation-timeline: scroll(root block);
+    }
   }
 
   .header__inner {

@@ -28,7 +28,7 @@ const certificates = [
   <BlockField variant="video" src="/media/abstract.mp4" />
 
   <div class="container">
-    <header class="awards__head">
+    <header class="awards__head reveal">
       <p class="section__no" data-no="03">Recognition</p>
       <h2 class="h2">
         <SplitText text="Recognition" />
@@ -40,7 +40,7 @@ const certificates = [
       </p>
     </header>
 
-    <ol class="awards__list">
+    <ol class="awards__list reveal-set">
       {
         site.awards.map((award, i) => (
           <li class="awards__row" style={`--i:${i % 3}`}>
@@ -70,12 +70,12 @@ const certificates = [
     </ol>
 
     <div class="certs">
-      <p class="certs__head">Certificates</p>
+      <p class="certs__head reveal">Certificates</p>
 
-      <ul class="certs__grid">
+      <ul class="certs__grid reveal-set">
         {
-          certificates.map((cert) => (
-            <li class="certs__item">
+          certificates.map((cert, i) => (
+            <li class="certs__item" style={`--i:${i}`}>
               <figure class="certs__figure">
                 <Image
                   class="certs__img"

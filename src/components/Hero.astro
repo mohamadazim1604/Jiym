@@ -41,7 +41,7 @@ const proof: { label: string; icon: IconName }[] = [
           `offset` on the second clause is the letter count of the first, so
           the stagger runs on as one continuous cascade across both lines. */
       }
-      <h1 class="display hero__title">
+      <h1 class="display hero__title" data-kinetic="idle">
         <span class="hero__line">
           <SplitText text="Digital infrastructure" mode="load" delay={220} chars />
         </span>
@@ -87,8 +87,9 @@ const proof: { label: string; icon: IconName }[] = [
     </div>
 
     {
-      /* Instrument panel. Mono readouts behind a live scanline, which is what
-        makes the corner of the page feel powered rather than decorated.
+      /* Instrument panel. Mono readouts, and nothing sweeping across them:
+        the light bar that used to run down this panel was the one piece of
+        motion on the page competing with the headline beside it.
         On desktop it spans both rows of the grid so its head sits level with
         the eyebrow — parked beside the lede instead, it left the whole
         top-right of the block empty and read as though it had slipped. */
@@ -97,8 +98,6 @@ const proof: { label: string; icon: IconName }[] = [
       class="hero__panel ticked glow lift rise rise-3"
       aria-label="At a glance"
     >
-      <span class="scanline" aria-hidden="true"></span>
-
       <div class="hero__panel-head">
         <span class="hero__panel-title">Recent Experience</span>
       </div>
@@ -123,6 +122,125 @@ const proof: { label: string; icon: IconName }[] = [
     </aside>
   </div>
 </section>
+
+<script>
+  /**
+   * Kinetic headline.
+   *
+   * The letters are already split and animated by CSS; this adds the one
+   * thing CSS cannot do on its own, which is let the type answer the pointer.
+   * Each letter is given a `--pull` between 0 and 1 for how close the cursor
+   * is to it, and global.css decides what a pull is worth in lift and scale.
+   *
+   * It deliberately does NOT start until the entrance cascade has finished.
+   * A running animation outranks every normal declaration, so until `char-in`
+   * releases `transform` there is nothing for a pull to move.
+   */
+  const title = document.querySelector<HTMLElement>('[data-kinetic]');
+
+  if (title) {
+    const letters = [...title.querySelectorAll<HTMLElement>('.split__i')];
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const fine = matchMedia('(hover: hover) and (pointer: fine)');
+
+    /** Distance at which a letter stops noticing the cursor at all. */
+    const REACH = 150;
+
+    // Centres, cached relative to the headline box rather than to the
+    // viewport, so scrolling never invalidates them. One box read per frame
+    // is then enough to place all forty.
+    let spots: { x: number; y: number }[] = [];
+    let pulls: number[] = letters.map(() => 0);
+
+    const measure = () => {
+      const box = title.getBoundingClientRect();
+      spots = letters.map((letter) => {
+        const rect = letter.getBoundingClientRect();
+        return {
+          x: rect.left - box.left + rect.width / 2,
+          y: rect.top - box.top + rect.height / 2,
+        };
+      });
+    };
+
+    let queued = false;
+    let point: { x: number; y: number } | null = null;
+
+    const flush = () => {
+      queued = false;
+      const box = title.getBoundingClientRect();
+
+      letters.forEach((letter, i) => {
+        let pull = 0;
+
+        if (point) {
+          const dx = point.x - (box.left + spots[i].x);
+          const dy = point.y - (box.top + spots[i].y);
+          const near = 1 - Math.min(1, Math.hypot(dx, dy) / REACH);
+          // Smoothstep. A linear falloff puts a visible cone edge on the
+          // line where letters stop reacting; this rounds both ends of it.
+          pull = near * near * (3 - 2 * near);
+        }
+
+        // Style writes are the expensive half of this, so only the letters
+        // that actually moved this frame are written to.
+        if (Math.abs(pull - pulls[i]) < 0.01) return;
+        pulls[i] = pull;
+        letter.style.setProperty('--pull', pull.toFixed(3));
+      });
+    };
+
+    const request = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(flush);
+    };
+
+    const attach = () => {
+      // The whole head block, not the h1: bound to the headline alone the
+      // effect cuts out the instant the cursor leaves the text's own box,
+      // which is a hard edge in the middle of a soft effect.
+      const host = title.closest<HTMLElement>('.hero__head') ?? title;
+
+      measure();
+      addEventListener('resize', measure);
+
+      host.addEventListener('pointermove', (event) => {
+        point = { x: event.clientX, y: event.clientY };
+        request();
+      });
+
+      host.addEventListener('pointerleave', () => {
+        point = null;
+        request();
+      });
+    };
+
+    const goLive = () => {
+      if (title.dataset.kinetic === 'live') return;
+      title.dataset.kinetic = 'live';
+      attach();
+    };
+
+    if (reduced.matches || !fine.matches) {
+      // Nothing to hand over to. Under reduced motion the cascade never runs
+      // in the first place, and on a touch screen there is no hover to drive
+      // a pull — a headline left lifted wherever the last tap landed reads as
+      // broken rather than as responsive.
+    } else {
+      const last = letters[letters.length - 1];
+
+      last?.addEventListener('animationend', (event) => {
+        if ((event as AnimationEvent).animationName === 'char-in') goLive();
+      });
+
+      // Belt and braces: if the cascade is interrupted — a background tab
+      // through the whole of it, a browser that never fires the event — the
+      // headline still goes live rather than staying inert forever.
+      setTimeout(goLive, 4000);
+    }
+  }
+</script>
 
 <style>
   .hero {

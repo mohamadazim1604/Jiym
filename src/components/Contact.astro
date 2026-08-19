@@ -19,17 +19,17 @@ const channels: { label: string; value: string; href: string; external: boolean;
   <div class="container">
     <p class="section__no" data-no="05">Contact</p>
 
-    <h2 class="display contact__title">
+    <h2 class="display contact__title reveal">
       <SplitText text="Get in" />
       <SplitText text="touch." offset={2} italic />
     </h2>
 
-    <p class="lede contact__lede">
+    <p class="lede contact__lede reveal">
       A short call, no charge. Tell me what you need and I will tell you straight whether I am the
       right person to build it.
     </p>
 
-    <ul class="contact__channels">
+    <ul class="contact__channels reveal-set">
       {
         channels.map((channel, i) => (
           <li class="contact__row" style={`--i:${i}`}>

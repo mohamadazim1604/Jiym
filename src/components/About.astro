@@ -23,7 +23,7 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
         the block reserves its space before the file arrives. No crop and no
         aspect-ratio: the frame takes the shape of the picture, and the widest
         variant asked for stays well inside what the source can fill. */}
-    <div class="plate" data-plate>
+    <div class="plate reveal" data-plate>
       <figure class="about__figure">
         <Image
           class="about__img"
@@ -42,13 +42,7 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
             aria-hidden: the readout repeats the role and location that the
             surrounding prose already states, so a screen reader gains
             nothing from hearing it twice. */}
-        <span class="plate__ring" aria-hidden="true"></span>
         <span class="plate__grid" aria-hidden="true"></span>
-
-        <span class="plate__corner plate__corner--tl" aria-hidden="true"></span>
-        <span class="plate__corner plate__corner--tr" aria-hidden="true"></span>
-        <span class="plate__corner plate__corner--bl" aria-hidden="true"></span>
-        <span class="plate__corner plate__corner--br" aria-hidden="true"></span>
 
         <span class="plate__readout" aria-hidden="true">
           <span class="plate__row">
@@ -60,7 +54,7 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
       </figure>
     </div>
 
-    <div class="about__text">
+    <div class="about__text reveal">
       <p class="section__no" data-no="04">About</p>
 
       <h2 class="h2 about__heading">
@@ -217,84 +211,34 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
     align-items: start;
   }
 
-  /* An angle custom property has to be registered before it can be animated:
-     to the transition engine a plain --spin is just a string, and a conic
-     gradient fed a string simply snaps. */
-  @property --spin {
-    syntax: '<angle>';
-    inherits: false;
-    initial-value: 0deg;
-  }
-
-  @keyframes plate-spin {
-    to { --spin: 360deg; }
-  }
-
-  @keyframes plate-corner {
-    0%, 100% { opacity: 0.35; }
-    50% { opacity: 1; }
-  }
-
   @keyframes plate-blink {
     0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(63, 220, 255, 0.55); }
     70% { opacity: 0.55; box-shadow: 0 0 0 6px rgba(63, 220, 255, 0); }
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .plate__ring {
-      animation: plate-spin 8s linear infinite;
-    }
-
-    .plate__corner {
-      animation: plate-corner 3.2s ease-in-out infinite;
-    }
-
-    .plate__corner--tr { animation-delay: 0.4s; }
-    .plate__corner--br { animation-delay: 0.8s; }
-    .plate__corner--bl { animation-delay: 1.2s; }
-
     .plate__dot {
       animation: plate-blink 2.4s ease-out infinite;
     }
   }
 
   /* ---------------------------------------------------------------- plate */
-  /* The portrait is framed as a live readout rather than as a photograph:
-     a rotating gradient ring, HUD corner brackets, a fine grid over the
-     image, one scan pass, and a status line.
+  /* What is left over the photograph is a fine grid and a status line. Both
+     the frame decorations that used to sit on top of it have been taken off,
+     and both for the same reason: a portrait is the one image on the page
+     that has to read as a person rather than as a readout.
 
-     None of it is scroll-driven. Everything either runs on its own clock or
-     answers the pointer, which is the distinction that matters here: nothing
-     on this page hides content until you scroll to it. */
+       · A rotating conic ring around the edge. Its mask was being reset by
+         the `-webkit-mask` shorthand written after it, so rather than a 1px
+         lit edge the browser painted the raw conic gradient across the whole
+         plate — a blue searchlight over the face.
+       · Four pulsing cyan corner brackets. They worked as drawn, and they
+         still framed the picture in something that blinked.
+
+     The plate keeps its pointer tilt, which is motion the visitor asks for
+     rather than motion aimed at them. */
   .plate {
     perspective: 1200px;
-  }
-
-  /* Rotating gradient ring, drawn as a conic fill masked to its own 1px edge.
-     Two nested gradients would be the alternative; this is one element. */
-  .plate__ring {
-    position: absolute;
-    inset: -1px;
-    z-index: 2;
-    border-radius: var(--radius);
-    padding: 1px;
-    background: conic-gradient(
-      from var(--spin, 0deg),
-      transparent 0deg,
-      var(--accent) 60deg,
-      var(--accent-2) 130deg,
-      transparent 200deg,
-      transparent 360deg
-    );
-    mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    mask-composite: exclude;
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    pointer-events: none;
   }
 
   /* Fine rule work over the photograph, faded out through the middle so it
@@ -312,20 +256,6 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
     opacity: 0.55;
     pointer-events: none;
   }
-
-  .plate__corner {
-    position: absolute;
-    z-index: 3;
-    width: 14px;
-    height: 14px;
-    border: 1px solid var(--accent-2);
-    pointer-events: none;
-  }
-
-  .plate__corner--tl { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
-  .plate__corner--tr { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
-  .plate__corner--bl { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
-  .plate__corner--br { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
 
   .plate__readout {
     position: absolute;

@@ -23,7 +23,7 @@ const glyphs: Record<string, IconName> = {
   <BlockField variant="mesh" />
 
   <div class="container">
-    <header class="caps__head">
+    <header class="caps__head reveal">
       <p class="section__no" data-no="02">Capabilities</p>
       <h2 class="h2">
         <SplitText text="Four core services." />
@@ -35,7 +35,7 @@ const glyphs: Record<string, IconName> = {
       </p>
     </header>
 
-    <ol class="caps__grid">
+    <ol class="caps__grid reveal">
       {
         site.services.map((service, i) => (
           <li class="caps__card sheen glow lift" style={`--i:${i}`}>
