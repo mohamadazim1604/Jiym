@@ -17,11 +17,18 @@ const channels: { label: string; value: string; href: string; external: boolean;
   <BlockField variant="video" tone="deep" />
 
   <div class="container">
-    <p class="section__no" data-no="05">Contact</p>
+    <p class="section__no reveal" data-no="05">Contact</p>
 
-    <h2 class="display contact__title reveal">
-      <SplitText text="Get in" />
-      <SplitText text="touch." offset={2} italic />
+    {/* One clause, so it sets on ONE row. Split in two it broke as "Get in" /
+        "touch." with the two halves in different colours — a four-word sign-
+        off does not need a line break or a colour change inside it.
+
+        Letter split rather than word, and accented throughout: this is the
+        last thing on the page and the only heading that is asking for
+        something, so it gets the same treatment as the hero headline rather
+        than the plainer cascade the section headings use. */}
+    <h2 class="display contact__title">
+      <SplitText text="Get in touch." chars italic />
     </h2>
 
     <p class="lede contact__lede reveal">

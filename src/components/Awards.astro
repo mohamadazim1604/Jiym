@@ -28,7 +28,7 @@ const certificates = [
   <BlockField variant="video" src="/media/abstract.mp4" />
 
   <div class="container">
-    <header class="awards__head reveal">
+    <header class="awards__head reveal-set">
       <p class="section__no" data-no="03">Recognition</p>
       <h2 class="h2">
         <SplitText text="Recognition" />
@@ -72,11 +72,11 @@ const certificates = [
     <div class="certs">
       <p class="certs__head reveal">Certificates</p>
 
-      <ul class="certs__grid reveal-set">
+      <ul class="certs__grid reveal-set" data-tilt-scene>
         {
           certificates.map((cert, i) => (
             <li class="certs__item" style={`--i:${i}`}>
-              <figure class="certs__figure">
+              <figure class="certs__figure" data-tilt data-cursor-label="View certificate">
                 <Image
                   class="certs__img"
                   src={cert.src}
@@ -269,7 +269,7 @@ const certificates = [
     border-color: var(--accent-line);
     box-shadow:
       0 28px 56px -40px var(--shadow),
-      0 0 44px -26px rgba(91, 145, 255, 0.45);
+      0 0 44px -26px rgba(110, 166, 255, 0.45);
   }
 
   /* Certificates are documents: shown whole, never cropped. They all share

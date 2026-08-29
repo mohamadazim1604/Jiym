@@ -10,7 +10,7 @@ export const site = {
   name: 'Mohamad Azim',
   fullName: 'Mohamad Azim bin Hasnul Azlan',
   role: 'Full-Stack Developer',
-  tagline: 'Digital systems your business runs on.',
+  tagline: 'Software built for what comes next.',
   description:
     'Full-stack developer in Kuala Lumpur, available for freelance work. Web platforms, mobile apps, e-commerce and the API integrations behind them, built end to end. Award-winning work at the Malaysia Technology Expo.',
   location: 'Kuala Lumpur, Malaysia',

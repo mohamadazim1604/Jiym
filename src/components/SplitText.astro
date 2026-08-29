@@ -39,15 +39,13 @@ const {
 
 const words = text.split(/\s+/).filter(Boolean);
 
-/* Numbered here rather than in the template, because both numbers have to keep
-   counting ACROSS word boundaries: `--i` so the stagger runs through the line
-   as one cascade instead of restarting at every space, and `--p` so an accent
-   gradient can be sampled at the right point of the line by each letter. */
+/* Numbered here rather than in the template, because `--i` has to keep
+   counting ACROSS word boundaries: the stagger runs through the whole line as
+   one cascade instead of restarting at every space. */
 let n = 0;
 const boxes = words.map((word) =>
   (chars ? Array.from(word) : [word]).map((unit) => ({ unit, n: n++ }))
 );
-const last = Math.max(n - 1, 1);
 ---
 
 <span
@@ -58,17 +56,14 @@ const last = Math.max(n - 1, 1);
     className,
     { accentuate: italic },
   ]}
-  style={`--base:${delay}ms;--n:${n}`}
+  style={`--base:${delay}ms`}
 >
   {
     boxes.map((units) => (
       <Fragment>
         <span class="split__w">
           {units.map(({ unit, n }) => (
-            <span
-              class="split__i"
-              style={`--i:${n + offset};--p:${((n / last) * 100).toFixed(2)}%`}
-            >
+            <span class="split__i" style={`--i:${n + offset}`}>
               {unit}
             </span>
           ))}

@@ -25,39 +25,39 @@ const proof: { label: string; icon: IconName }[] = [
 <section class="hero has-field" id="home">
   <BlockField variant="beam" />
 
-  <div class="container hero__inner">
+  <div class="container hero__inner" data-tilt-scene>
     <div class="hero__head">
       <p class="eyebrow rise rise-1">Full-stack development · Available for new projects</p>
 
       {
-        /* Each clause is its own block, so the two lines break where the
-          sentence breaks instead of wherever the column happens to run out. */
-      }
-      {
         /* Letter split, not word split. The headline is the one place on the
           page where the extra granularity pays for itself: the cascade reads
           as the line being SET rather than as two boxes sliding in, and it
-          gives the gleam something to travel along afterwards.
-          `offset` on the second clause is the letter count of the first, so
-          the stagger runs on as one continuous cascade across both lines. */
+          gives the charge something to travel along afterwards.
+
+          `offset` on the second clause is the letter count of the first (10),
+          so the stagger runs on as one continuous cascade across both rows
+          instead of restarting halfway through the sentence. Change the top
+          row and this number has to change with it.
+
+          The capital Y mid-sentence is deliberate, not a typo. The second row
+          is the one set in colour, and a lower-case word opening a coloured
+          line reads as a fragment that fell off the line above it rather than
+          as the half of the sentence being emphasised. */
       }
       <h1 class="display hero__title" data-kinetic="idle">
-        <span class="hero__line">
-          <SplitText text="Digital infrastructure" mode="load" delay={220} chars />
-        </span>
-        <span class="hero__line">
-          <SplitText
-            text="your business runs on."
-            mode="load"
-            delay={220}
-            offset={21}
-            chars
-            italic
-          />
-        </span>
+        <SplitText text="Fast to ship" mode="load" delay={140} chars />
+        <SplitText
+          text="Built to last"
+          mode="load"
+          delay={140}
+          offset={10}
+          chars
+          italic
+        />
       </h1>
 
-      <span class="hero__rule rise rise-3" aria-hidden="true"></span>
+      <span class="hero__rule" aria-hidden="true"></span>
     </div>
 
     <div class="hero__main">
@@ -97,6 +97,7 @@ const proof: { label: string; icon: IconName }[] = [
     <aside
       class="hero__panel ticked glow lift rise rise-3"
       aria-label="At a glance"
+      data-tilt
     >
       <div class="hero__panel-head">
         <span class="hero__panel-title">Recent Experience</span>
@@ -254,15 +255,6 @@ const proof: { label: string; icon: IconName }[] = [
     margin-top: clamp(1.1rem, 2.5vw, 1.75rem);
   }
 
-  /* Blocks, so each clause owns its own line at any width the clause fits.
-     Deliberately NOT `nowrap`: forcing it would hold the two lines together
-     on a phone by pushing the headline straight off the side of the screen.
-     On narrow viewports a clause is allowed to wrap within itself, and the
-     inherited `balance` evens out the rag when it does. */
-  .hero__line {
-    display: block;
-  }
-
   .hero__rule {
     display: block;
     height: 1px;
@@ -274,6 +266,19 @@ const proof: { label: string; icon: IconName }[] = [
       transparent 70%
     );
   }
+
+  /* Draws ITSELF in, left to right, rather than fading up with everything
+     else. A rule that arrives whole is furniture; a rule that draws is the
+     page finishing a sentence — and it lands just after the last letter of
+     the headline does. `wipe-in` had been sitting unused in global.css ever
+     since the old reveals were stripped out. */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__rule {
+      animation: wipe-in 1.2s var(--ease) both;
+      animation-delay: 1.15s;
+    }
+  }
+
 
   .hero__inner {
     display: grid;

@@ -23,8 +23,8 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
         the block reserves its space before the file arrives. No crop and no
         aspect-ratio: the frame takes the shape of the picture, and the widest
         variant asked for stays well inside what the source can fill. */}
-    <div class="plate reveal" data-plate>
-      <figure class="about__figure">
+    <div class="plate reveal" data-tilt-scene>
+      <figure class="about__figure" data-tilt>
         <Image
           class="about__img"
           src={portrait}
@@ -54,12 +54,11 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
       </figure>
     </div>
 
-    <div class="about__text reveal">
+    <div class="about__text reveal-set">
       <p class="section__no" data-no="04">About</p>
 
       <h2 class="h2 about__heading">
-        <SplitText text="The person you" />
-        <SplitText text="actually deal with." offset={3} italic />
+        <SplitText text="More About Me" />
       </h2>
 
       {
@@ -116,14 +115,6 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
 
 <script>
   /**
-   * Pointer tilt for the portrait plate.
-   *
-   * Only where there is a real pointer: on touch there is no hover to drive
-   * it, and a plate left at whatever angle the last tap produced looks
-   * broken. Coalesced to one frame, and held to 6 degrees, past which it
-   * stops reading as a panel catching the light.
-   */
-  /**
    * Stack explorer.
    *
    * Progressive enhancement, deliberately: the markup ships every panel
@@ -164,43 +155,6 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
     select(0);
   }
 
-  const plate = document.querySelector<HTMLElement>('[data-plate]');
-  const figure = plate?.querySelector<HTMLElement>('.about__figure');
-  const canTilt =
-    matchMedia('(hover: hover) and (pointer: fine)').matches &&
-    !matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if (plate && figure && canTilt) {
-    const MAX = 6;
-    let queued = false;
-    let next: { rx: number; ry: number } | null = null;
-
-    const flush = () => {
-      queued = false;
-      if (!next) return;
-      figure.style.setProperty('--rx', `${next.rx.toFixed(2)}deg`);
-      figure.style.setProperty('--ry', `${next.ry.toFixed(2)}deg`);
-      next = null;
-    };
-
-    plate.addEventListener('pointermove', (event) => {
-      const box = plate.getBoundingClientRect();
-      next = {
-        // Away from the cursor vertically, toward it horizontally: how a real
-        // panel would pivot on its centre.
-        rx: (0.5 - (event.clientY - box.top) / box.height) * MAX * 2,
-        ry: ((event.clientX - box.left) / box.width - 0.5) * MAX * 2,
-      };
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(flush);
-    });
-
-    plate.addEventListener('pointerleave', () => {
-      figure.style.setProperty('--rx', '0deg');
-      figure.style.setProperty('--ry', '0deg');
-    });
-  }
 </script>
 
 <style>
@@ -299,28 +253,37 @@ const groupGlyphs: IconName[] = ['model', 'terminal', 'trace', 'blocks'];
     flex: none;
   }
 
+  /* No `transform` of its own any more. The shared `[data-tilt]` rule in
+     global.css owns it, and the perspective comes from `.plate` above rather
+     than from a `perspective()` inside this transform — every tilted panel on
+     the page now shares one vanishing point instead of each inventing its
+     own.
+
+     The old `:hover` here set `transform: translateY(-3px)`, which silently
+     replaced the whole tilt the moment the pointer arrived: the plate leaned
+     right up until you touched it and then snapped flat. The lift it was
+     after is now carried by the shadow alone, which is what was doing the
+     visible work anyway. */
   .about__figure {
     position: relative;
     margin: 0;
     overflow: hidden;
-    transform: perspective(1200px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
     border-radius: var(--radius);
     background: var(--surface);
     border: 1px solid var(--line-soft);
     box-shadow: 0 24px 50px -34px var(--shadow);
     transition:
-      transform 0.7s var(--ease),
       border-color 0.7s var(--ease),
       box-shadow 0.7s var(--ease);
   }
 
   .about__figure:hover {
-    transform: translateY(-3px);
     border-color: var(--accent-line);
     box-shadow:
-      0 34px 60px -38px var(--shadow),
-      0 0 46px -26px rgba(91, 145, 255, 0.45);
+      0 40px 70px -38px var(--shadow),
+      0 0 46px -26px rgba(110, 166, 255, 0.45);
   }
+
 
   /* Intrinsic. No crop, no forced ratio, and never rendered wider than the
      source can fill, which is where softness comes from. */

@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import type { IconName } from './Icon.astro';
+import SplitText from './SplitText.astro';
 import { site, mailtoHref, whatsappHref } from '../data/site';
 
 /* Social platforms are one of the few places a logo genuinely carries more
@@ -62,6 +63,21 @@ const links = [
           ))
         }
       </div>
+    </div>
+
+    {/* The wordmark, at the size the page can finally afford to set it.
+        A footer that simply stops is the most common way a portfolio throws
+        away its last impression; this gives the scroll somewhere to land.
+
+        Outlined rather than filled, because at this size solid type would
+        outshout the contact details directly above it — the name should be
+        the last thing you notice, not the first.
+
+        `aria-hidden`, and deliberately: the name is already announced by
+        `.footer__name` a few lines up, and a screen reader hearing it twice
+        gains nothing but the confusion of wondering which one matters. */}
+    <div class="footer__mark" aria-hidden="true">
+      <SplitText text={site.name.toUpperCase()} chars />
     </div>
 
     <div class="footer__base">
@@ -150,6 +166,50 @@ const links = [
   /* Centred, now that the colophon line beside it is gone. Left-aligning a
      single line under a four-column grid just looked like the other half had
      failed to render. */
+
+  /* --- wordmark ----------------------------------------------------------- */
+
+  .footer__mark {
+    margin-top: clamp(2.5rem, 6vw, 4.5rem);
+    /* The letters are inline-blocks that lean and lift, so they need room
+       above the line box or the tops get clipped by the base rule. */
+    padding-bottom: 0.08em;
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 12.2vw, 9.5rem);
+    font-weight: 600;
+    line-height: 0.92;
+    letter-spacing: -0.045em;
+    /* Outlined, not filled. The stroke is the same hairline every rule and
+       border on this page is drawn in, so the name reads as part of the
+       instrument rather than as a headline that wandered into the footer. */
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-hard);
+    text-stroke: 1px var(--line-hard);
+    user-select: none;
+  }
+
+  /* Fills as the pointer crosses it, letter by letter — the one place on the
+     page where the wordmark is allowed to become solid. `transition-delay`
+     off `--i` means the fill chases the cursor across the name instead of
+     switching the whole thing at once. */
+  .footer__mark :global(.split__i) {
+    transition:
+      color 0.5s var(--ease),
+      -webkit-text-stroke-color 0.5s var(--ease);
+  }
+
+  .footer__mark:hover :global(.split__i) {
+    color: var(--accent-type);
+    -webkit-text-stroke-color: transparent;
+    transition-delay: calc(var(--i, 0) * 28ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footer__mark:hover :global(.split__i) {
+      transition-delay: 0ms;
+    }
+  }
+
   .footer__base {
     display: flex;
     justify-content: center;

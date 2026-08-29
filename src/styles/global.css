@@ -45,11 +45,30 @@
 
   /* One electric accent, plus a cyan for gradients and live states. Both are
      lifted from the light-theme originals: #1156f0 does not carry against
-     near-black, it just reads as a dark hole. */
-  --accent: #5b91ff;
+     near-black, it just reads as a dark hole.
+
+     Lifted a second time, from #5b91ff, once the accent stopped being a
+     gradient and started carrying whole headlines on its own. At display size
+     the old value sat too close to the ground it was printed on and read as
+     dim rather than as electric. The hue is opened a few degrees toward the
+     cyan along with the lightness, which is what keeps it reading as brighter
+     rather than merely paler.
+
+     The two alpha derivatives below are the same colour, so they move with
+     it — left behind they would have tinted every border and hover edge on
+     the page in the OLD blue, a mismatch too small to name and too visible
+     to ignore. */
+  --accent: #6ea6ff;
   --accent-2: #3fdcff;
-  --accent-soft: rgba(91, 145, 255, 0.16);
-  --accent-line: rgba(91, 145, 255, 0.48);
+  /* The colour an accented CLAUSE is set in, kept apart from `--accent`
+     deliberately. The blue is the interface accent — buttons, rules, hover
+     edges, the focus ring — and it earns its brightness against small
+     shapes. A headline is a large shape, and at that size the blue reads as
+     a second-priority line rather than as the emphasis it is meant to be.
+     This cyan carries at display size, which is the only place it is used. */
+  --accent-type: #52eeff;
+  --accent-soft: rgba(110, 166, 255, 0.16);
+  --accent-line: rgba(110, 166, 255, 0.48);
   --grad: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 100%);
 
   /* Recessed surfaces. Darker than the ground, not inverted from it. */
@@ -162,6 +181,18 @@ select {
 ::selection {
   background: var(--accent);
   color: #fff;
+}
+
+/* The system pointer is only given up once the replacement is confirmed
+   running — the class is added by the script in Cursor.astro, never by the
+   markup. `!important` is not laziness here: half the interactive elements on
+   this page set `cursor: pointer` or `cursor: grab` themselves, and every one
+   of them would otherwise punch the arrow back through the reticle. */
+html.has-cursor,
+html.has-cursor *,
+html.has-cursor *::before,
+html.has-cursor *::after {
+  cursor: none !important;
 }
 
 /* ------------------------------------------------------------ 3. structure */
@@ -283,60 +314,23 @@ h4 {
   letter-spacing: -0.022em;
 }
 
-/* Replaces the old italic serif flourish. Accent phrases are now rendered in
-   the gradient, which is the modern equivalent of the same move: one clause
-   lifts out of the line without changing its weight or size. */
+/* Replaces the old italic serif flourish. An accent phrase lifts out of its
+   line by colour alone, without changing weight or size.
+
+   ONE colour, flat. It used to be a six-stop gradient running blue, cyan,
+   white, cyan, blue, cyan — clipped to the text and sliding sideways on a
+   loop. Set across a headline it read as a wash of mixed colour rather than
+   as one phrase said differently, and the white stop in the middle meant the
+   emphasis kept dropping out into the same colour as the line it was meant to
+   lift away from.
+
+   The value lives in `--accent-type` rather than in `--accent`, because type
+   at display size and a 1px border do not want the same brightness out of the
+   same hue. See the token for the reasoning. */
 .accentuate {
-  background: linear-gradient(
-    100deg,
-    var(--accent) 0%,
-    var(--accent-2) 25%,
-    #ffffff 40%,
-    var(--accent-2) 55%,
-    var(--accent) 80%,
-    var(--accent-2) 100%
-  );
-  background-size: 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--accent-type);
 }
 
-@keyframes accent-flow {
-  from { background-position: 0% 50%; }
-  to { background-position: 200% 50%; }
-}
-
-/* The sweep is for word-split and unsplit accents only. A letter-split accent
-   (the hero headline) holds its ramp still and carries a travelling highlight
-   instead — see `char-gleam`. Excluded here rather than overridden later so
-   there is only ever one rule deciding what an accent phrase animates. */
-@media (prefers-reduced-motion: no-preference) {
-  .accentuate:not(.split--chars),
-  .accentuate:not(.split--chars) .split__i {
-    animation: accent-flow 9s linear infinite;
-  }
-}
-
-/* When an accent phrase is word-split for the reveal animation, the gradient
-   has to be painted on the word spans themselves. A background clipped to text
-   on the parent has no text of its own left to clip to once every word lives
-   inside its own inline-block, so the whole line renders invisible. */
-.accentuate .split__i {
-  background: linear-gradient(
-    100deg,
-    var(--accent) 0%,
-    var(--accent-2) 25%,
-    #ffffff 40%,
-    var(--accent-2) 55%,
-    var(--accent) 80%,
-    var(--accent-2) 100%
-  );
-  background-size: 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
 
 /* Mono micro-label. The engineering-console cue that does the most work. */
 .eyebrow {
@@ -423,7 +417,7 @@ h4 {
   --btn-bg: var(--accent);
   --btn-border: var(--accent);
   --btn-fg: #fff;
-  box-shadow: 0 10px 30px -12px rgba(91, 145, 255, 0.7);
+  box-shadow: 0 10px 30px -12px rgba(110, 166, 255, 0.7);
 }
 
 .btn--ghost {
@@ -461,13 +455,58 @@ h4 {
   pointer-events: none;
 }
 
+/* Arrow relay. On hover the arrow leaves to the right and a second one
+   arrives from the left to take its place, rather than the single glyph
+   nudging three pixels and nudging back.
+
+   Done with two pseudo-elements and no change to the markup anywhere. The
+   span's own glyph is set transparent and kept only for its metrics; the two
+   copies that actually show are `::before` and `::after`, and the span clips
+   them, which is what makes them appear to travel through a slot. `--btn-fg`
+   is safe to reach for here because this element only ever exists inside a
+   `.btn`, and it is what keeps the arrow inverting correctly along with the
+   label when the button fills with the accent. */
 .btn__arrow {
-  transition: transform 0.35s var(--ease);
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  overflow: hidden;
+  color: transparent;
 }
 
-.btn:hover .btn__arrow {
-  transform: translateX(3px);
+.btn__arrow::before,
+.btn__arrow::after {
+  content: '→';
+  position: absolute;
+  inset: 0;
+  color: var(--btn-fg);
+  transition: transform 0.45s var(--ease);
 }
+
+/* The incoming copy waits off the left edge. */
+.btn__arrow::after {
+  transform: translateX(-165%);
+}
+
+.btn:hover .btn__arrow::before,
+.btn:focus-visible .btn__arrow::before {
+  transform: translateX(165%);
+}
+
+.btn:hover .btn__arrow::after,
+.btn:focus-visible .btn__arrow::after {
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn__arrow::before,
+  .btn__arrow::after {
+    transition: none;
+  }
+}
+
 
 .link {
   display: inline-flex;
@@ -568,7 +607,7 @@ h4 {
   --glow-a: 0;
   background-image: radial-gradient(
     22rem 22rem at var(--mx, 50%) var(--my, 50%),
-    rgba(91, 145, 255, var(--glow-a)),
+    rgba(110, 166, 255, var(--glow-a)),
     transparent 68%
   );
   background-repeat: no-repeat;
@@ -621,7 +660,7 @@ h4 {
   box-shadow:
     0 26px 50px -30px var(--shadow),
     0 0 0 1px var(--accent-line),
-    0 0 40px -18px rgba(91, 145, 255, 0.55);
+    0 0 40px -18px rgba(110, 166, 255, 0.55);
   border-color: var(--accent-line);
 }
 
@@ -744,9 +783,9 @@ h4 {
   position: absolute;
   inset: -25%;
   background:
-    radial-gradient(30rem 30rem at 18% 20%, rgba(91, 145, 255, 0.22), transparent 62%),
+    radial-gradient(30rem 30rem at 18% 20%, rgba(110, 166, 255, 0.22), transparent 62%),
     radial-gradient(26rem 26rem at 82% 62%, rgba(63, 220, 255, 0.18), transparent 62%),
-    radial-gradient(22rem 22rem at 55% 92%, rgba(91, 145, 255, 0.14), transparent 62%);
+    radial-gradient(22rem 22rem at 55% 92%, rgba(110, 166, 255, 0.14), transparent 62%);
   filter: blur(10px);
 }
 
@@ -792,7 +831,7 @@ h4 {
   pointer-events: none;
   overflow: hidden;
 
-  --bf-1: rgba(91, 145, 255, 0.2);
+  --bf-1: rgba(110, 166, 255, 0.2);
   --bf-2: rgba(63, 220, 255, 0.16);
   --bf-line: rgba(233, 237, 245, 0.06);
   --bf-dot: rgba(233, 237, 245, 0.09);
@@ -802,7 +841,7 @@ h4 {
 /* Recessed blocks sit on a darker ground, so the same figures need more
    signal to register at all. */
 .bfield--deep {
-  --bf-1: rgba(91, 145, 255, 0.28);
+  --bf-1: rgba(110, 166, 255, 0.28);
   --bf-2: rgba(63, 220, 255, 0.22);
   --bf-line: rgba(233, 237, 245, 0.08);
   --bf-dot: rgba(233, 237, 245, 0.12);
@@ -1027,6 +1066,97 @@ h4 {
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent);
 }
 
+/* ------------------------------------------------------------------ grain */
+
+/* A film-grain layer over the entire document.
+
+   This is the cheapest premium cue there is on a dark ground. A near-black
+   page is mostly flat colour, and flat colour on an LCD shows banding in
+   every gradient and reads as digital emptiness in between. A few percent of
+   noise breaks both: the blooms behind each block stop banding, and the whole
+   page picks up the texture of something photographed rather than something
+   filled.
+
+   Drawn with `feTurbulence` in a data URI, so there is no image request and
+   nothing to cache — the browser generates the noise itself. Fixed, oversized
+   and jittered one step at a time, which is what stops it reading as a static
+   dirty screen: real grain resamples every frame, and stepping through eight
+   offsets at 8fps is enough to suggest that without animating anything the
+   compositor has to think about.
+
+   `pointer-events: none` is load-bearing, not defensive: this sits above the
+   header, and without it the layer would swallow every click on the page. */
+.grain {
+  position: fixed;
+  /* Oversized on every side so the jitter can never pull an edge into view. */
+  inset: -150px;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes grain-jitter {
+  0% { transform: translate3d(0, 0, 0); }
+  12.5% { transform: translate3d(-8%, 4%, 0); }
+  25% { transform: translate3d(6%, -7%, 0); }
+  37.5% { transform: translate3d(-5%, -6%, 0); }
+  50% { transform: translate3d(7%, 5%, 0); }
+  62.5% { transform: translate3d(-6%, 7%, 0); }
+  75% { transform: translate3d(4%, -4%, 0); }
+  87.5% { transform: translate3d(-7%, -3%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .grain {
+    /* `steps(1)` per segment: it must SNAP between offsets. Interpolated, the
+       whole field slides around and reads as a moving texture rather than as
+       grain being resampled. */
+    animation: grain-jitter 1s steps(1) infinite;
+  }
+}
+
+/* --------------------------------------------------------------- 3d tilt */
+
+/* The perspective lives on the PARENT, not on the card. Written into each
+   card's own transform, every card gets its own vanishing point directly
+   behind itself, and a row of them turns like four separate objects filmed
+   by four separate cameras. One perspective on the container puts them all
+   in the same room, so the cards at the edges lean away from a shared centre
+   the way real panels on a real surface would. */
+[data-tilt-scene] {
+  perspective: 1400px;
+}
+
+[data-tilt] {
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.7s var(--ease);
+}
+
+/* Snaps to the pointer on the way in, eases on the way out. Matching the
+   two makes the card feel like it is lagging behind the cursor; the whole
+   point is that it feels ATTACHED to it. */
+[data-tilt]:hover {
+  transition-duration: 0.14s;
+}
+
+[data-tilt-lift] {
+  transform: translate3d(var(--px, 0px), var(--py, 0px), 0);
+  transition: transform 0.7s var(--ease);
+}
+
+[data-tilt]:hover [data-tilt-lift] {
+  transition-duration: 0.14s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tilt],
+  [data-tilt-lift] {
+    transform: none;
+  }
+}
+
 /* --------------------------------------------------------------- 8. motion */
 
 @keyframes reveal-in {
@@ -1066,25 +1196,26 @@ h4 {
    than `none`, because a shadow list can only interpolate against another
    shadow list of the same length. */
 @keyframes char-gleam {
-  0%, 68%, 100% {
+  0% {
     filter: brightness(1) drop-shadow(0 0 0 rgba(120, 205, 255, 0));
     text-shadow:
       0 0 0 rgba(63, 220, 255, 0),
-      0 0 0 rgba(91, 145, 255, 0);
+      0 0 0 rgba(110, 166, 255, 0);
   }
-  76% {
-    filter: brightness(1.45) drop-shadow(0 0 22px rgba(120, 205, 255, 0.5));
+  7% {
+    filter: brightness(1.5) drop-shadow(0 0 24px rgba(120, 205, 255, 0.55));
     text-shadow:
       0.055em 0 0 rgba(63, 220, 255, 0.55),
-      -0.055em 0 0 rgba(91, 145, 255, 0.5);
+      -0.055em 0 0 rgba(110, 166, 255, 0.5);
   }
-  84% {
-    filter: brightness(1.12) drop-shadow(0 0 10px rgba(120, 205, 255, 0.2));
+  17%, 100% {
+    filter: brightness(1) drop-shadow(0 0 0 rgba(120, 205, 255, 0));
     text-shadow:
       0 0 0 rgba(63, 220, 255, 0),
-      0 0 0 rgba(91, 145, 255, 0);
+      0 0 0 rgba(110, 166, 255, 0);
   }
 }
+
 
 @keyframes wipe-in {
   from { clip-path: inset(0 100% 0 0); }
@@ -1366,6 +1497,47 @@ h4 {
       animation-range: cover 0% cover 100%;
     }
 
+
+    /* Section headings assemble word by word as they arrive. These carry
+       `mode="scroll"`, and until now that meant nothing at all: the class was
+       on the markup with no rule behind it, left over from when every reveal
+       on the page was ripped out. This is what it was always meant to be.
+
+       Same reasoning as `.reveal-set` above — the stagger is in the range,
+       because a scroll-driven animation has no clock to delay against. Every
+       word in a line sits at the same height, so their timelines are
+       identical and the offset per `--i` is the only thing separating them. */
+    .split--scroll .split__i {
+      animation: word-up 0.8s var(--ease) both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(8% + var(--i, 0) * 3%)
+        cover calc(30% + var(--i, 0) * 3%);
+    }
+
+    /* A letter-split heading arriving on scroll — the sign-off at the foot of
+       the page. It borrows the hero's hinge rather than the flat rise the
+       word-split headings use, because at one letter per box a plain vertical
+       slide reads as the line stuttering. The per-letter step is much smaller
+       than the per-word one for the obvious reason: there are four times as
+       many of them, and the same step would leave the last letter still
+       arriving after the first has been sitting still for half a screen. */
+    .split--scroll.split--chars .split__i {
+      animation: char-in 0.9s var(--ease-snap) both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(8% + var(--i, 0) * 1.6%)
+        cover calc(28% + var(--i, 0) * 1.6%);
+    }
+
+    /* A heading inside a block that is revealing sits out its parent's turn.
+       Its own words are already arriving one by one, and two fades multiplied
+       together make the line land twice — dimmer, and later than the copy
+       around it. */
+    .reveal-set > *:has(.split--scroll) {
+      animation: none;
+    }
+
     /* Opt-out for a block whose own content is pinned. Behind a sticky card
        a backdrop moving at a second rate does not read as depth, it reads as
        drift. */
@@ -1385,16 +1557,24 @@ h4 {
      no property — the entrance owns `transform` and `opacity`, the gleam owns
      `filter` and `text-shadow` — so neither overwrites the other's fill.
 
-     The gleam's per-letter delay is longer than the entrance's, which is what
-     tips it from "every letter flashes at once" into a charge that travels
-     the length of the line. It starts after the whole cascade has landed. */
+     The gleam's per-letter delay is longer than the entrance's, which is
+     what tips it from "every letter flashes at once" into a charge that
+     travels the length of the line.
+
+     Its peak sits at 7% of the cycle rather than near the end, and that is a
+     first-impression decision rather than a rhythmic one. With the peak late,
+     the first charge did not arrive until six and a half seconds after the
+     page settled — the headline finished landing and then sat there doing
+     nothing through the exact window in which a visitor decides whether this
+     site is worth their attention. Now the charge runs through the line as
+     the last letter touches down, and every six seconds after that. */
   .split--load.split--chars .split__i {
     animation:
       char-in 1s var(--ease-snap) both,
       char-gleam 6s ease-in-out infinite;
     animation-delay:
-      calc(var(--base, 0ms) + var(--i, 0) * 26ms),
-      calc(var(--base, 0ms) + 1.9s + var(--i, 0) * 34ms);
+      calc(var(--base, 0ms) + var(--i, 0) * 24ms),
+      calc(var(--base, 0ms) + 1.6s + var(--i, 0) * 34ms);
   }
 
   /* Once the cascade has landed the script marks the headline live, and the
@@ -1432,8 +1612,20 @@ h4 {
 
 /* Word-mask mechanics. clip-path, not overflow, so glyphs that lean or extend
    past their advance width are never sheared at the sides. */
+
+/* BLOCK, not inline. Every heading on this page is written as two clauses,
+   one plain and one accented, and inline they simply ran together into one
+   paragraph that broke wherever the column happened to end — "Four core
+   services. One" / "standard of delivery.", "Recognition and" /
+   "achievement.". The break landed mid-clause every time, which is the one
+   place a two-part headline must never break.
+
+   As a block each clause owns its line and can still wrap WITHIN itself on a
+   narrow screen, where `balance` on the heading evens out the rag. The hero
+   solved this locally with its own `.hero__line` wrappers long before the
+   section headings were checked; this is that fix, applied once, everywhere. */
 .split {
-  display: inline;
+  display: block;
 }
 
 .split__w {
@@ -1480,15 +1672,6 @@ h4 {
     translate3d(0, calc(var(--pull, 0) * -0.62rem), 0)
     scale(calc(1 + var(--pull, 0) * 0.055));
   transition: transform 0.5s var(--ease);
-}
-
-/* One gradient stretched across the whole clause and sampled once per letter,
-   rather than a fresh ramp restarting inside every glyph. `--n` is the letter
-   count, so the image is exactly as wide as the line; `--p` is where in the
-   line this letter sits. Both are computed at build time in SplitText.astro. */
-.accentuate.split--chars .split__i {
-  background-size: calc(var(--n, 1) * 100%) 100%;
-  background-position: var(--p, 0%) 50%;
 }
 
 .m-progress,

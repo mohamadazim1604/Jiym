@@ -5,6 +5,7 @@ import '@fontsource-variable/jetbrains-mono/wght.css';
 import '../styles/global.css';
 
 import Header from '../components/Header.astro';
+import Cursor from '../components/Cursor.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../data/site';
 
@@ -100,6 +101,12 @@ const schema = {
       <div class="field__mesh"></div>
     </div>
 
+    <!-- Film grain, over everything including the header. Click-through by
+         `pointer-events: none`; see the .grain rule for why it exists. -->
+    <div class="grain" aria-hidden="true"></div>
+
+    <Cursor />
+
     <Header />
     <main id="main">
       <slot />
@@ -175,6 +182,66 @@ const schema = {
           magnet.addEventListener('pointerleave', () => {
             magnet.style.setProperty('--mag-x', '0px');
             magnet.style.setProperty('--mag-y', '0px');
+          });
+        }
+      }
+
+      /**
+       * 3D tilt.
+       *
+       * Any `[data-tilt]` leans toward the pointer on two axes, and anything
+       * inside it marked `[data-tilt-lift]` slides a few pixels the OTHER
+       * way. That counter-movement is what actually sells the depth: a card
+       * that only rotates reads as a flat picture of a card being turned,
+       * while contents that drift against the rotation read as sitting above
+       * the surface at a real distance from it.
+       *
+       * True `translateZ` would be the textbook way to do that and it does
+       * not work here — every one of these cards clips its own overflow, and
+       * `overflow: hidden` forces `transform-style` back to flat, collapsing
+       * any Z the children were given. The parallax is the honest workaround.
+       *
+       * One rAF for the whole page, and only the card under the pointer is
+       * written to. Reads (`getBoundingClientRect`) all happen before any
+       * write, so a grid of nine cards still costs one layout pass.
+       */
+      const tilts = [...document.querySelectorAll<HTMLElement>('[data-tilt]')];
+
+      if (tilts.length && !reducedQuery.matches && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        const MAX = 7;
+        let tiltQueued = false;
+        let tiltNext: { el: HTMLElement; box: DOMRect; x: number; y: number } | null = null;
+
+        const tiltFlush = () => {
+          tiltQueued = false;
+          if (!tiltNext) return;
+
+          const { el, box, x, y } = tiltNext;
+          // -0.5 … 0.5 from the centre of the card, on both axes.
+          const ox = (x - box.left) / box.width - 0.5;
+          const oy = (y - box.top) / box.height - 0.5;
+
+          el.style.setProperty('--rx', `${(-oy * MAX * 2).toFixed(2)}deg`);
+          el.style.setProperty('--ry', `${(ox * MAX * 2).toFixed(2)}deg`);
+          el.style.setProperty('--px', `${(-ox * 14).toFixed(1)}px`);
+          el.style.setProperty('--py', `${(-oy * 10).toFixed(1)}px`);
+
+          tiltNext = null;
+        };
+
+        for (const card of tilts) {
+          card.addEventListener('pointermove', (event) => {
+            tiltNext = { el: card, box: card.getBoundingClientRect(), x: event.clientX, y: event.clientY };
+            if (tiltQueued) return;
+            tiltQueued = true;
+            requestAnimationFrame(tiltFlush);
+          });
+
+          card.addEventListener("pointerleave", () => {
+            card.style.setProperty("--rx", "0deg");
+            card.style.setProperty("--ry", "0deg");
+            card.style.setProperty("--px", "0px");
+            card.style.setProperty("--py", "0px");
           });
         }
       }

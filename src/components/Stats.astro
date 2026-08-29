@@ -13,10 +13,10 @@ const statGlyphs: IconName[] = ['award', 'blocks', 'clock', 'stack'];
   <BlockField variant="scan" />
 
   <div class="container">
-    <ul class="stats__grid reveal-set">
+    <ul class="stats__grid reveal-set" data-tilt-scene>
       {
         site.stats.map((stat, i) => (
-          <li class="stats__cell glow lift" style={`--i:${i}`}>
+          <li class="stats__cell glow lift" style={`--i:${i}`} data-tilt>
             <span class="stats__bar" aria-hidden="true" />
             <span class="stats__glyph" aria-hidden="true">
               <Icon name={statGlyphs[i] ?? 'stack'} size="1.1rem" />
@@ -25,7 +25,7 @@ const statGlyphs: IconName[] = ['award', 'blocks', 'clock', 'stack'];
             {/* The rendered text IS the final value, so the number is correct
                 with no JavaScript at all. The roll-up only ever overwrites a
                 value it has already captured from the markup. */}
-            <span class="stats__value">{stat.value}</span>
+            <span class="stats__value" data-tilt-lift>{stat.value}</span>
             <span class="stats__label">{stat.label}</span>
           </li>
         ))

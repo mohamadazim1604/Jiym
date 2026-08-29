@@ -20,7 +20,7 @@ const entries = (await getCollection('work'))
   <BlockField variant="video" />
 
   <div class="container">
-    <header class="systems__head reveal">
+    <header class="systems__head reveal-set">
       <p class="section__no" data-no="01">Systems</p>
       <h2 class="h2">
         <SplitText text="Two platforms in production." />
@@ -41,7 +41,7 @@ const entries = (await getCollection('work'))
               <span class="sys__year">{entry.data.year}</span>
             </div>
 
-            <div class="sys__body reveal" style={`--i:${i}`}>
+            <div class="sys__body reveal-set" style={`--i:${i}`}>
               <h3 class="sys__name">
                 <SplitText text={entry.data.title} />
               </h3>
@@ -56,7 +56,7 @@ const entries = (await getCollection('work'))
               </ul>
 
               <div class="sys__actions">
-                <a class="btn" href={`/work/${entry.id}`}>
+                <a class="btn" href={`/work/${entry.id}`} data-cursor-label="Open case study">
                   Read the case study
                   <span class="btn__arrow" aria-hidden="true">
                     →
