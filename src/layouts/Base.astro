@@ -114,6 +114,8 @@ const schema = {
     <Footer />
 
     <script>
+      import { motionValue, springValue } from 'motion';
+
       const reducedQuery = matchMedia('(prefers-reduced-motion: reduce)');
 
       /**
@@ -187,13 +189,13 @@ const schema = {
       }
 
       /**
-       * 3D tilt.
+       * 3D tilt, on springs.
        *
        * Any `[data-tilt]` leans toward the pointer on two axes, and anything
        * inside it marked `[data-tilt-lift]` slides a few pixels the OTHER
        * way. That counter-movement is what actually sells the depth: a card
        * that only rotates reads as a flat picture of a card being turned,
-       * while contents that drift against the rotation read as sitting above
+       * while contents drifting against the rotation read as sitting above
        * the surface at a real distance from it.
        *
        * True `translateZ` would be the textbook way to do that and it does
@@ -201,47 +203,76 @@ const schema = {
        * `overflow: hidden` forces `transform-style` back to flat, collapsing
        * any Z the children were given. The parallax is the honest workaround.
        *
-       * One rAF for the whole page, and only the card under the pointer is
-       * written to. Reads (`getBoundingClientRect`) all happen before any
-       * write, so a grid of nine cards still costs one layout pass.
+       * The four values are sprung rather than transitioned. A CSS transition
+       * restarts from wherever it was every time the pointer moves, so under
+       * a continuously moving cursor it never finishes and the card reads as
+       * permanently behind. A spring has a velocity that survives each new
+       * target, so the card tracks the pointer and still overshoots when it
+       * is released.
+       *
+       * The per-card frame loop only runs while there is something to draw:
+       * it stops itself once the pointer is gone AND every spring has come to
+       * rest, so ten idle cards cost nothing.
        */
       const tilts = [...document.querySelectorAll<HTMLElement>('[data-tilt]')];
 
       if (tilts.length && !reducedQuery.matches && matchMedia('(hover: hover) and (pointer: fine)').matches) {
         const MAX = 7;
-        let tiltQueued = false;
-        let tiltNext: { el: HTMLElement; box: DOMRect; x: number; y: number } | null = null;
-
-        const tiltFlush = () => {
-          tiltQueued = false;
-          if (!tiltNext) return;
-
-          const { el, box, x, y } = tiltNext;
-          // -0.5 … 0.5 from the centre of the card, on both axes.
-          const ox = (x - box.left) / box.width - 0.5;
-          const oy = (y - box.top) / box.height - 0.5;
-
-          el.style.setProperty('--rx', `${(-oy * MAX * 2).toFixed(2)}deg`);
-          el.style.setProperty('--ry', `${(ox * MAX * 2).toFixed(2)}deg`);
-          el.style.setProperty('--px', `${(-ox * 14).toFixed(1)}px`);
-          el.style.setProperty('--py', `${(-oy * 10).toFixed(1)}px`);
-
-          tiltNext = null;
-        };
+        const SPRING = { stiffness: 250, damping: 24, mass: 0.5 };
 
         for (const card of tilts) {
+          const targets = {
+            rx: motionValue(0),
+            ry: motionValue(0),
+            px: motionValue(0),
+            py: motionValue(0),
+          };
+
+          const springs = {
+            rx: springValue(targets.rx, SPRING),
+            ry: springValue(targets.ry, SPRING),
+            px: springValue(targets.px, SPRING),
+            py: springValue(targets.py, SPRING),
+          };
+
+          let raf = 0;
+          let over = false;
+
+          const draw = () => {
+            card.style.setProperty('--rx', `${springs.rx.get().toFixed(2)}deg`);
+            card.style.setProperty('--ry', `${springs.ry.get().toFixed(2)}deg`);
+            card.style.setProperty('--px', `${springs.px.get().toFixed(2)}px`);
+            card.style.setProperty('--py', `${springs.py.get().toFixed(2)}px`);
+
+            const settling = Object.values(springs).some(
+              (value) => Math.abs(value.getVelocity()) > 0.05,
+            );
+
+            raf = over || settling ? requestAnimationFrame(draw) : 0;
+          };
+
+          const kick = () => {
+            if (!raf) raf = requestAnimationFrame(draw);
+          };
+
           card.addEventListener('pointermove', (event) => {
-            tiltNext = { el: card, box: card.getBoundingClientRect(), x: event.clientX, y: event.clientY };
-            if (tiltQueued) return;
-            tiltQueued = true;
-            requestAnimationFrame(tiltFlush);
+            const box = card.getBoundingClientRect();
+            // -0.5 … 0.5 from the centre of the card, on both axes.
+            const ox = (event.clientX - box.left) / box.width - 0.5;
+            const oy = (event.clientY - box.top) / box.height - 0.5;
+
+            over = true;
+            targets.rx.set(-oy * MAX * 2);
+            targets.ry.set(ox * MAX * 2);
+            targets.px.set(-ox * 14);
+            targets.py.set(-oy * 10);
+            kick();
           });
 
-          card.addEventListener("pointerleave", () => {
-            card.style.setProperty("--rx", "0deg");
-            card.style.setProperty("--ry", "0deg");
-            card.style.setProperty("--px", "0px");
-            card.style.setProperty("--py", "0px");
+          card.addEventListener('pointerleave', () => {
+            over = false;
+            for (const value of Object.values(targets)) value.set(0);
+            kick();
           });
         }
       }

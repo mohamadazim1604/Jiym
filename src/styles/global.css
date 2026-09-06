@@ -19,67 +19,83 @@
      the chrome around the page matches the page. */
   color-scheme: dark;
 
-  /* Cool neutral ramp, near-black through to a slightly blue white. */
-  --bg: #070910;
-  --bg-deep: #04050a;
-  /* The alternate section ground. Far enough off `--bg` to be seen as a
-     different block at a glance — `--bg-deep` was only three points away and
-     the two read as one continuous surface. */
-  --bg-alt: #0d121c;
-  --surface: #141924;
-  --surface-2: #1e2532;
-  /* The whole text ramp runs bright. On a near-black ground the usual trick
-     of stepping secondary text down toward mid-grey reads as switched-off
-     rather than as hierarchy: #b7c0ce looked dim in body copy at 1.5 line
-     height. Separation between the four levels is carried by small steps at
-     the TOP of the range instead, so even `--faint` stays comfortably
-     legible and every level clears AA against `--bg`. */
-  --ink: #f5f8fd;
-  --ink-2: #dbe3ee;
-  --muted: #aab5c6;
-  --faint: #8794a6;
+  /* THE VOID.
 
-  --line: rgba(233, 237, 245, 0.16);
-  --line-soft: rgba(233, 237, 245, 0.1);
-  --line-hard: rgba(233, 237, 245, 0.32);
+     One ground, pure black, for every block on the page. There used to be
+     three — `--bg`, `--bg-alt` and `--bg-deep` — alternating so each section
+     had a visible edge against its neighbours. That was the right answer for
+     a page built out of panels. It is the wrong answer now: the sections are
+     separated by whitespace and by scale instead, and any dark grey here
+     immediately reads as a panel floating on the black rather than as the
+     page itself. Black is the surface, not the absence of one. */
+  --bg: #000000;
+  --bg-deep: #000000;
+  --bg-alt: #000000;
 
-  /* One electric accent, plus a cyan for gradients and live states. Both are
-     lifted from the light-theme originals: #1156f0 does not carry against
-     near-black, it just reads as a dark hole.
+  /* Retired, not deleted. Roughly a dozen rules still ask for a surface to
+     sit on; resolving those to `transparent` removes every card ground on the
+     page in one move, and leaves the declarations in place so the structure
+     is still legible to anyone reading the CSS later. */
+  --surface: transparent;
+  --surface-2: transparent;
 
-     Lifted a second time, from #5b91ff, once the accent stopped being a
-     gradient and started carrying whole headlines on its own. At display size
-     the old value sat too close to the ground it was printed on and read as
-     dim rather than as electric. The hue is opened a few degrees toward the
-     cyan along with the lightness, which is what keeps it reading as brighter
-     rather than merely paler.
+  /* White, ash, silver — and every grey is TINTED. The reference lists them
+     as #bdbdbd and #9a9a9a, which are R=G=B: the flattest possible neutrals,
+     and the loudest single tell that nobody looked at a palette. These are the
+     same two values bent a few points toward the cyan accent, so the greys sit
+     in the same hue family as the one colour on the page instead of reading as
+     a separate, colder system dropped in beside it.
 
-     The two alpha derivatives below are the same colour, so they move with
-     it — left behind they would have tinted every border and hover edge on
-     the page in the OLD blue, a mismatch too small to name and too visible
-     to ignore. */
+     Three levels where there were four — the old ramp
+     kept `--faint` a step above mid-grey so small text stayed legible against
+     a lit panel, but nothing sits on a panel any more and #9a9a9a on pure
+     black is a stronger contrast than #8794a6 ever was on #141924. */
+  --ink: #ffffff;
+  --ink-2: #bcc6c9;
+  --muted: #9aa4a8;
+  --faint: #9aa4a8;
+
+  /* THE HAIRLINES ARE OFF.
+
+     Eighty-seven border declarations across twelve files used these three
+     tokens, and every one of them is now painting nothing. Killing them at
+     the token rather than deleting them one by one is deliberate on both
+     counts: it is a single reversible line, and a transparent border still
+     occupies its 1px in the box model, so not one element on the page shifts
+     position as they go. The layout you had is the layout you keep — only the
+     drawing stops. */
+  --line: transparent;
+  --line-soft: transparent;
+  --line-hard: transparent;
+
+  /* One electric accent for action, one for emphasis in type. Kept from the
+     old system rather than taken from the reference: the reference reaches
+     for violet and amber, and this is not a violet brand.
+
+     `--accent-line` survives as a real colour because it is no longer doing
+     structural work — the few places still asking for it want a deliberate
+     lit edge (the cursor tag, a focused control), which is exactly the kind
+     of border that is allowed to exist. */
   --accent: #6ea6ff;
   --accent-2: #3fdcff;
-  /* The colour an accented CLAUSE is set in, kept apart from `--accent`
-     deliberately. The blue is the interface accent — buttons, rules, hover
-     edges, the focus ring — and it earns its brightness against small
-     shapes. A headline is a large shape, and at that size the blue reads as
-     a second-priority line rather than as the emphasis it is meant to be.
-     This cyan carries at display size, which is the only place it is used. */
   --accent-type: #52eeff;
   --accent-soft: rgba(110, 166, 255, 0.16);
   --accent-line: rgba(110, 166, 255, 0.48);
   --grad: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 100%);
 
-  /* Recessed surfaces. Darker than the ground, not inverted from it. */
-  --deep: #04050a;
-  --deep-2: #0b0e15;
-  --deep-text: #f5f8fd;
-  --deep-muted: #aab5c6;
-  --deep-line: rgba(233, 237, 245, 0.16);
+  /* Recessed surfaces collapse into the void along with everything else. */
+  --deep: #000000;
+  --deep-2: #000000;
+  --deep-text: #ffffff;
+  --deep-muted: #9a9a9a;
+  --deep-line: transparent;
 
-  /* Shadow on a dark ground has to be real black to register at all. */
-  --shadow: rgba(0, 0, 0, 0.72);
+  /* NO ELEVATION. Nothing on this page sits above anything else, so nothing
+     casts. Twenty `box-shadow` declarations resolve to a shadow you cannot
+     see; the hierarchy is carried by scale, contrast and whitespace instead.
+     A shadow here would break the floating-in-space quality the black is
+     doing all this work to create. */
+  --shadow: transparent;
 
   /* Sora for display rather than Space Grotesk. Space Grotesk has a quirk in
      it — the splayed leg on the R, the single-storey g — that reads as design
@@ -91,30 +107,41 @@
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', monospace;
 
-  --step--2: clamp(0.69rem, 0.67rem + 0.08vw, 0.74rem);
-  --step--1: clamp(0.81rem, 0.78rem + 0.14vw, 0.89rem);
-  --step-0: clamp(0.97rem, 0.94rem + 0.18vw, 1.06rem);
-  --step-1: clamp(1.15rem, 1.09rem + 0.3vw, 1.35rem);
-  --step-2: clamp(1.42rem, 1.3rem + 0.6vw, 1.85rem);
-  --step-3: clamp(1.8rem, 1.55rem + 1.25vw, 2.65rem);
-  --step-4: clamp(2.1rem, 1.65rem + 2.1vw, 3.3rem);
-  /* Pulled down hard from a 6.1rem cap. At the old size the hero headline
-     broke into four short lines inside its column and left a ragged void
-     beside the last one — the line was so large that the grid could not give
-     it enough width to set properly at any viewport. */
-  --step-5: clamp(2.5rem, 1.6rem + 3.3vw, 4.25rem);
+  /* The scale is rebuilt around the reference's proportions — body 18px,
+     heading 48, heading-lg 78, display 113 — but expressed as `clamp()`
+     rather than as the fixed pixel values the spec lists. That is not a
+     liberty, it is a necessity: a fixed 113px display line on a 375px phone
+     is four characters wide and unreadable, and the spec has no responsive
+     answer of its own. The CAPS match the reference; the floors are sized so
+     the same headline still sets on a phone. */
+  --step--2: clamp(0.72rem, 0.7rem + 0.08vw, 0.75rem);
+  --step--1: clamp(0.82rem, 0.79rem + 0.14vw, 0.875rem);
+  --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --step-1: clamp(1.1rem, 1.02rem + 0.35vw, 1.25rem);
+  --step-2: clamp(1.4rem, 1.2rem + 0.9vw, 1.6875rem);
+  --step-3: clamp(1.75rem, 1.4rem + 1.6vw, 2.25rem);
+  --step-4: clamp(2.35rem, 1.55rem + 3.6vw, 4.875rem);
+  --step-5: clamp(2.9rem, 1.6rem + 5.9vw, 7rem);
 
   --container: 80rem;
   --gutter: clamp(1.15rem, 4.5vw, 4rem);
-  /* Roughly half what it was (10vw capped at 8.5rem). Now that the blocks
-     carry their own solid grounds and alternate, the separation is doing the
-     work the empty space used to: that much padding on top of a visible edge
-     just opened a dead band between every section. */
-  --section: clamp(2.75rem, 5vw, 4.5rem);
+  /* Opened back up to the reference's 60-120px. The old value was halved on
+     the argument that alternating panel grounds were doing the separating;
+     with every block on the same void, whitespace is the ONLY thing telling
+     one section from the next, so it has to be generous enough to do it. */
+  --section: clamp(3.75rem, 7vw, 7.5rem);
   --measure: 66ch;
 
-  --radius: 4px;
-  --radius-lg: 10px;
+  /* HIERARCHICAL, not one value on everything. A single radius applied to
+     every box is the rounded-2xl tell — it says the number was chosen once
+     and never revisited. These are three sizes doing three jobs: a pill for
+     anything pressable, a generous 24px for media and large blocks, and a
+     tight 6px for the small instrument details that survived the redesign. */
+  --radius-pill: 9999px;
+  --radius: 24px;
+  --radius-lg: 24px;
+  --radius-sm: 6px;
+  --radius-full: 9999px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -207,17 +234,21 @@ html.has-cursor *::after {
 .section {
   position: relative;
   padding-block: var(--section);
-  /* Solid, and alternating. Every block used to sit on a translucent wash of
-     the same colour, which meant one section ran into the next with nothing
-     but a hairline between them and the page read as one endless scroll.
-     Two grounds alternating gives every block a visible edge on both sides.
-     The hero is exempt — it is the one place the footage is the subject. */
+  /* One ground for every block, and no rule between them. The old comment
+     here argued the opposite — that alternating grounds were the only thing
+     stopping the page reading as one endless scroll — and that was true of a
+     page built from panels. It is not true now. Whitespace separates the
+     sections, and it has been roughly doubled (see `--section`) to take over
+     the job the edges used to do. */
   background-color: var(--bg);
-  border-top: 1px solid var(--line);
 }
 
+/* Kept as a hook, not as a colour. Every block sits on the same void now, so
+   this resolves to the same ground as `.section` — but the class is still on
+   half the markup and still names a real alternation in the page's rhythm, so
+   removing it would cost a sweep through six components to say nothing. */
 .section--alt {
-  background-color: var(--bg-alt);
+  background-color: var(--bg);
 }
 
 /* A video backdrop veils itself in its block's own ground. On an alternate
@@ -231,30 +262,32 @@ html.has-cursor *::after {
 /* A numbered plate above each section heading. Reading "03 / RECOGNITION"
    tells you where you are in the page and how much of it is left, which a
    bare eyebrow never did. */
+/* A coloured caption now, not a bordered plate. The border and the surface
+   behind it are both transparent, so the padding that used to hold the plate
+   off its own edges is just an indent knocking the label out of alignment
+   with the headline beneath it — removed. Set in the accent, which is the
+   role the reference gives its small uppercase labels. */
 .section__no {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  padding: 0.35rem 0.8rem;
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  background-color: var(--surface);
   font-family: var(--font-mono);
   font-size: var(--step--2);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--accent-type);
   align-self: flex-start;
 }
 
+/* Flat, not gradient-filled. The reference is explicit that gradients belong
+   to imagery and never to UI, and a two-stop ramp across two digits was only
+   ever legible as "slightly uneven colour" anyway. */
 .section__no::before {
   content: attr(data-no);
   font-weight: 600;
-  background: var(--grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--accent-type);
+  opacity: 0.55;
 }
 
 /* No trailing rule. The flex `gap` separates the number from the label on its
@@ -290,28 +323,39 @@ h4 {
   text-wrap: balance;
 }
 
+/* WEIGHT 400, NOT 600 — the single most load-bearing rule in this system.
+
+   The reference sets its 113px display line at the same weight as its body
+   copy and lets scale and tracking carry the entire hierarchy. Bolding a
+   headline at this size is what makes a page look like a template: the type
+   is already enormous, so extra weight adds nothing but density, and it is
+   precisely the thing that separates a considered dark page from a loud one.
+
+   -0.04em tracking on everything 42px and up. At display sizes the default
+   spacing is far too loose — the letters read as a row of separate objects
+   rather than as a word. */
 .display {
   font-family: var(--font-display);
   font-size: var(--step-5);
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.038em;
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
 }
 
 .h2 {
   font-family: var(--font-display);
   font-size: var(--step-4);
-  font-weight: 600;
-  line-height: 1.06;
-  letter-spacing: -0.032em;
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
 }
 
 .h3 {
   font-family: var(--font-display);
   font-size: var(--step-2);
-  font-weight: 600;
-  line-height: 1.14;
-  letter-spacing: -0.022em;
+  font-weight: 400;
+  line-height: 1.16;
+  letter-spacing: -0.028em;
 }
 
 /* Replaces the old italic serif flourish. An accent phrase lifts out of its
@@ -351,10 +395,35 @@ h4 {
 
 .lede {
   font-size: var(--step-1);
+  font-weight: 200;
   line-height: 1.5;
   color: var(--ink-2);
   max-width: 48ch;
   text-wrap: pretty;
+}
+
+/* ULTRA-LIGHT PROSE — the reference's signature, and the one place it is
+   allowed to apply. Most dark SaaS pages set body copy at 400; dropping to
+   200 is what makes a paragraph read as airy and unhurried rather than as a
+   wall being pushed toward the reader.
+
+   Scoped to prose by name rather than set on the root, and that distinction
+   is the whole point. Inherited from the root it would have reached 57 mono
+   rules that never declare a weight of their own — every readout key, tag,
+   nav link and chip on the site — and at 12-14px weight 200 stops being airy
+   and becomes illegible. The spec says 200 is for 18px body copy. It means
+   exactly that.
+
+   Inter Variable covers 100-900, so this is a real weight and not a
+   synthesised one; font-synthesis-weight:none on the body would have
+   refused to fake it in any case. */
+.lede,
+.prose p,
+.about__para,
+.caps__summary,
+.sys__summary,
+.proc__body {
+  font-weight: 200;
 }
 
 .muted {
@@ -383,11 +452,18 @@ h4 {
 /* ------------------------------------------------------------- 5. controls */
 
 .btn {
-  /* The primary button is the lightest thing on the page, so its label has to
-     be the page ground rather than white-on-white. */
-  --btn-bg: var(--ink);
-  --btn-fg: var(--bg);
-  --btn-border: var(--ink);
+  /* THE filled pill, and the only one on any given view. It used to be white
+     on black, with the accent appearing only on hover — which meant the one
+     element on the page that should have been unmistakably the primary action
+     was the same colour as the headline above it, and the brand colour showed
+     up only after you had already found the button.
+
+     Now it rests in the accent and stays there. 24px of radius on a ~45px
+     control is a full pill: soft, friendly, and impossible to confuse with
+     anything else on a page that has no other filled shape. */
+  --btn-bg: var(--accent);
+  --btn-fg: #ffffff;
+  --btn-border: var(--accent);
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -396,7 +472,7 @@ h4 {
   background: var(--btn-bg);
   color: var(--btn-fg);
   border: 1px solid var(--btn-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-pill);
   font-family: var(--font-mono);
   font-size: var(--step--2);
   font-weight: 500;
@@ -412,18 +488,32 @@ h4 {
     transform 0.35s var(--ease);
 }
 
+/* The one exception to the no-elevation rule. Everything static on this page
+   is flat, but the button is the single thing asking to be pressed, and a lit
+   halo under it on hover is feedback rather than decoration. */
 .btn:hover {
   transform: translateY(-2px);
-  --btn-bg: var(--accent);
-  --btn-border: var(--accent);
-  --btn-fg: #fff;
-  box-shadow: 0 10px 30px -12px rgba(110, 166, 255, 0.7);
+  --btn-bg: var(--accent-type);
+  --btn-border: var(--accent-type);
+  --btn-fg: #000000;
+  box-shadow: 0 12px 34px -14px rgba(82, 238, 255, 0.55);
 }
 
+/* Bare text, no container at all. The secondary action gets no background
+   and no border, so hierarchy between the two buttons comes entirely from one
+   being a filled shape and the other being a word. */
 .btn--ghost {
   --btn-bg: transparent;
   --btn-fg: var(--ink);
-  --btn-border: var(--line-hard);
+  --btn-border: transparent;
+  padding-inline: 0.4rem;
+}
+
+.btn--ghost:hover {
+  --btn-bg: transparent;
+  --btn-border: transparent;
+  --btn-fg: var(--accent-type);
+  box-shadow: none;
 }
 
 .btn--ghost:hover {
@@ -1129,25 +1219,17 @@ h4 {
   perspective: 1400px;
 }
 
+/* No `transition` on either of these, deliberately. The four variables are
+   driven frame by frame by a spring in Base.astro, and a transition on top of
+   a per-frame write is a second easing curve chasing the first — the card
+   ends up lagging the pointer by the transition duration and never catching
+   up while the cursor keeps moving. The spring IS the smoothing. */
 [data-tilt] {
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  transition: transform 0.7s var(--ease);
-}
-
-/* Snaps to the pointer on the way in, eases on the way out. Matching the
-   two makes the card feel like it is lagging behind the cursor; the whole
-   point is that it feels ATTACHED to it. */
-[data-tilt]:hover {
-  transition-duration: 0.14s;
 }
 
 [data-tilt-lift] {
   transform: translate3d(var(--px, 0px), var(--py, 0px), 0);
-  transition: transform 0.7s var(--ease);
-}
-
-[data-tilt]:hover [data-tilt-lift] {
-  transition-duration: 0.14s;
 }
 
 @media (prefers-reduced-motion: reduce) {

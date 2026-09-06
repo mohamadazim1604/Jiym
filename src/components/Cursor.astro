@@ -45,6 +45,24 @@
 </div>
 
 <script>
+  /**
+   * Spring physics from `motion` — the framework-agnostic build of Framer
+   * Motion, which is why this needs no React.
+   *
+   * The ring used to chase the pointer on a hand-rolled lerp: a fixed
+   * fraction of the remaining distance, every frame. That is cheap and it is
+   * also why it felt like a lagging cursor rather than a physical object —
+   * a lerp has no momentum, so it decelerates into every stop identically no
+   * matter how hard it was thrown. A spring carries velocity through the
+   * stop and settles, which is the entire difference between "delayed" and
+   * "weighted".
+   *
+   * `getVelocity()` comes free with the spring, so the squash-and-stretch is
+   * now driven by real measured speed rather than by differencing positions
+   * by hand.
+   */
+  import { motionValue, springValue } from 'motion';
+
   const root = document.querySelector<HTMLElement>('[data-cursor]');
 
   const fine = matchMedia('(hover: hover) and (pointer: fine)');
@@ -64,15 +82,25 @@
 
       let px = innerWidth / 2;
       let py = innerHeight / 2;
-      let rx = px;
-      let ry = py;
       let shown = false;
+
+      /* The target the ring is pulled toward, and the spring that does the
+         pulling. Low damping relative to stiffness leaves a trace of overshoot
+         — enough to feel sprung, not enough to wobble. */
+      const tx = motionValue(px);
+      const ty = motionValue(py);
+      const opts = { stiffness: 380, damping: 30, mass: 0.55 };
+      const sx = springValue(tx, opts);
+      const sy = springValue(ty, opts);
 
       addEventListener(
         'pointermove',
         (event) => {
           px = event.clientX;
           py = event.clientY;
+          tx.set(px);
+          ty.set(py);
+          kick();
 
           if (!shown) {
             shown = true;
@@ -111,21 +139,28 @@
         if (label && text.textContent !== label) text.textContent = label;
       });
 
+      /* The loop stops itself. The dot only moves when the pointer does, and
+         the ring only moves while its spring is still settling — so once both
+         are true there is nothing left to draw, and holding a frame callback
+         open just to write the same three values back keeps the compositor
+         awake and costs battery for no picture at all. `kick` restarts it. */
+      let raf = 0;
+
       const loop = () => {
-        // The dot is pinned to the truth.
+        // The dot is pinned to the truth. Nothing eased, nothing sprung —
+        // something has to sit exactly where the pointer is.
         dot.style.translate = `${px}px ${py}px`;
 
-        // The ring is dragged toward it.
-        const nx = rx + (px - rx) * 0.19;
-        const ny = ry + (py - ry) * 0.19;
-        const vx = nx - rx;
-        const vy = ny - ry;
-        rx = nx;
-        ry = ny;
+        const rx = sx.get();
+        const ry = sy.get();
 
-        /* Squash and stretch, capped hard. Uncapped, one flick across a wide
-           monitor turns the reticle into a streak the width of the screen. */
-        const speed = Math.min(Math.hypot(vx, vy) / 26, 1);
+        /* Velocity in pixels per SECOND, straight off the spring. Divided
+           down to a 0-1 ratio and capped hard: uncapped, one flick across a
+           wide monitor turns the reticle into a streak the width of the
+           screen. */
+        const vx = sx.getVelocity();
+        const vy = sy.getVelocity();
+        const speed = Math.min(Math.hypot(vx, vy) / 1600, 1);
 
         ring.style.translate = `${rx}px ${ry}px`;
         /* `rotate` and `scale` as their own properties rather than folded into
@@ -134,14 +169,21 @@
            this needs. Written as one `transform` the stretch would be applied
            in rotated space and drag the ring off the pointer. */
         ring.style.rotate = `${(Math.atan2(vy, vx) * 180) / Math.PI}deg`;
-        ring.style.scale = `${1 + speed * 0.38} ${1 - speed * 0.24}`;
+        ring.style.scale = `${1 + speed * 0.42} ${1 - speed * 0.26}`;
 
         tag.style.translate = `${rx}px ${ry}px`;
 
-        requestAnimationFrame(loop);
+        // Still travelling, or still more than half a pixel short of the
+        // pointer it is chasing.
+        const busy = speed > 0.001 || Math.hypot(px - rx, py - ry) > 0.5;
+        raf = busy ? requestAnimationFrame(loop) : 0;
       };
 
-      requestAnimationFrame(loop);
+      const kick = () => {
+        if (!raf) raf = requestAnimationFrame(loop);
+      };
+
+      kick();
     }
   }
 </script>

@@ -76,14 +76,20 @@ const glyphs: Record<string, IconName> = {
   .caps__grid {
     list-style: none;
     padding: 0;
-    margin: clamp(1.75rem, 3.5vw, 2.75rem) 0 0;
+    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1px;
-    background: var(--line-soft);
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius);
-    overflow: hidden;
+    /* Real whitespace, not a 1px hairline gap.
+
+       This grid used to draw its own dividers with a trick: a 1px gap over a
+       tinted background, so the ground showed through between the cards as a
+       hairline. With the hairline tokens off that background is transparent
+       and the trick collapses — four cards mashed edge to edge with a 1px
+       crack between them, reading as one undifferentiated block of text.
+
+       Whitespace has to do the separating instead, and it needs real room to
+       do it: 1px of gap becomes 3rem. */
+    gap: clamp(2.25rem, 4vw, 3rem);
   }
 
   .caps__card {
