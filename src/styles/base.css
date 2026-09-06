@@ -1,0 +1,415 @@
+/* ==========================================================================
+   BASE
+   Reset and base typography. No components, no layout, no utilities.
+
+   Everything here styles an HTML element as the browser hands it over. A
+   page with no classes on it at all should already be set in Clash and
+   Switzer, on the cured ground, at the right size and measure, with working
+   focus rings. Stage 3 builds structure on top of this; it should not have
+   to re-state any of it.
+
+   Requires tokens.css to be loaded first.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. RESET
+
+   Kept short on purpose. A long reset is mostly undoing things this system
+   never uses. These are the six that actually matter.
+   -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Every margin is opted into, never inherited from the UA. Vertical rhythm
+   on an 8px grid cannot survive default margins in ems that no one chose. */
+* {
+  margin: 0;
+}
+
+html {
+  /* Tells the UA to render form controls, scrollbars and the canvas dark, so
+     the chrome around the page matches the page. Set on the root and not
+     remapped by [data-ground="light"]: a light SECTION does not make the
+     document light, and flipping it would change the scrollbar halfway down
+     a scroll. */
+  color-scheme: dark;
+  /* Stops iOS inflating text in landscape, which silently breaks both the
+     type scale and the 68ch measure. */
+  -webkit-text-size-adjust: 100%;
+  /* No `scroll-behavior: smooth`. Smooth scroll arrives at stage 5 via
+     Lenis, and having both would mean two systems animating one scroll. */
+}
+
+body {
+  background-color: var(--ground);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: var(--lh-body);
+  letter-spacing: var(--track-body);
+
+  /* Three faces are loaded and there is no italic and no 700. Left alone,
+     the browser would manufacture both: a sheared oblique for <em> and a
+     smeared double-strike for <strong>. Switching synthesis off means a
+     weight this system does not own simply does not appear, which is the
+     honest failure. The <em> and <strong> rules below give both a real
+     treatment using what is actually loaded. */
+  font-synthesis: none;
+
+  /* Light text on a dark ground renders heavier than it should on macOS
+     without this. It is a genuine correction here rather than a habit,
+     because the default ground is cured and the default text is latex. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Kerning and ligatures on. Clash Display at 136px shows every unkerned
+     pair, and this is free. */
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+
+/* Replaced elements are block-level and never overflow their column. */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Form controls do not inherit type by default, which is how a select ends
+   up in the system UI font on an otherwise typeset page. */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+/* --------------------------------------------------------------------------
+   2. HEADINGS
+
+   Clash Display 600 is the only heading face and the only place Clash is
+   used at all. It is a display face: it is drawn to be set large, and it
+   looks like a mistake at 16px.
+
+   The tracking tightens as the size grows, which is the correct direction
+   and the one the brief specifies at the display end. Optical spacing that
+   reads as normal at 25px reads as gappy at 136px.
+   -------------------------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--fg);
+  /* Stops the last line of a heading falling to a single orphaned word,
+     which at 136px is not a small blemish but a hole in the page. */
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--t-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--track-display);
+}
+
+h2 {
+  font-size: var(--t-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--track-display);
+}
+
+h3 {
+  font-size: var(--t-h3);
+  line-height: var(--lh-h3);
+  letter-spacing: var(--track-heading);
+}
+
+h4 {
+  font-size: var(--t-h4);
+  line-height: var(--lh-h4);
+  letter-spacing: var(--track-heading);
+}
+
+/* h5 and h6 exist for document structure, not for a fifth and sixth visual
+   rank. A page that needs six heading sizes is a page with a structure
+   problem. Both are set at body size in the body face, distinguished by
+   weight, so they mark hierarchy for a screen reader without inventing
+   typography nobody asked for. */
+h5,
+h6 {
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  font-weight: 600;
+  line-height: var(--lh-h4);
+  letter-spacing: var(--track-body);
+}
+
+/* --------------------------------------------------------------------------
+   3. PROSE
+   -------------------------------------------------------------------------- */
+
+p,
+ul,
+ol,
+dl,
+blockquote,
+figure,
+pre,
+table {
+  /* Under 75 characters, per the brief. 68 rather than 74 because Switzer
+     runs slightly wide and `ch` measures the zero, which is narrower than
+     the average lowercase advance. */
+  max-width: var(--measure);
+}
+
+p {
+  /* Avoids a single-word last line without the reflow cost of `balance` on
+     long text. Ignored where unsupported, which costs nothing. */
+  text-wrap: pretty;
+}
+
+/* Spacing between stacked prose is set once, here, using the owl selector so
+   nothing has a trailing margin to collapse or strip. 24px is three units of
+   the 8px grid and sits comfortably under a 1.6 line height. */
+p + p,
+p + ul,
+p + ol,
+p + blockquote,
+p + figure,
+ul + p,
+ol + p,
+blockquote + p,
+figure + p {
+  margin-top: var(--s-3);
+}
+
+/* A heading binds to the text under it and separates from the text above it.
+   Asymmetric on purpose: equal space above and below makes a heading float
+   between two blocks instead of introducing one. */
+h2,
+h3,
+h4 {
+  margin-top: var(--s-5);
+  margin-bottom: var(--s-2);
+}
+
+/* Except when it opens a block, where the top margin would push it off its
+   own section. */
+h1:first-child,
+h2:first-child,
+h3:first-child,
+h4:first-child {
+  margin-top: 0;
+}
+
+ul,
+ol {
+  padding-left: var(--s-3);
+}
+
+li + li {
+  margin-top: var(--s-1);
+}
+
+/* Quotes are marked by a rule and a tonal shift, not by a large glyph or an
+   indent. Depth in this system is tone and rules, and that applies to
+   typography as much as to surfaces. */
+blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: var(--s-3);
+  color: var(--fg-2);
+}
+
+/* The one horizontal rule. `border` rather than `background` so it stays a
+   hairline at any device pixel ratio. */
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin-block: var(--s-5);
+  max-width: none;
+}
+
+small,
+.caption-size {
+  font-size: var(--t-caption);
+  /* Small text is where the 4.5:1 floor bites hardest, so it takes the
+     lifted grey rather than `--fg-muted`. */
+  color: var(--fg-2);
+}
+
+/* Emphasis without an italic face. Switzer ships here in 400 and 600 only,
+   and `font-synthesis: none` above means a faked oblique is not available
+   as a fallback. Weight is the honest carrier of emphasis in a two-weight
+   system, and it is arguably the better one: an italic in a geometric sans
+   is a weak signal at the best of times. */
+em,
+i,
+cite {
+  font-style: normal;
+  font-weight: 600;
+}
+
+strong,
+b {
+  font-weight: 600;
+  /* Weight alone is a soft signal at 600, so strong also takes the full
+     foreground while surrounding prose can sit at --fg-2. */
+  color: var(--fg);
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-code);
+  /* The mono face runs large next to Switzer at the same nominal size.
+     0.9em is optical, not arbitrary. */
+  font-size: 0.9em;
+}
+
+code {
+  background-color: var(--ground-lift-2);
+  border-radius: var(--radius-control);
+  padding: 0.1em 0.35em;
+}
+
+pre {
+  background-color: var(--ground-lift);
+  border: 1px solid var(--rule-soft);
+  padding: var(--s-3);
+  overflow-x: auto;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+/* --------------------------------------------------------------------------
+   4. LINKS
+
+   The accent is 4.09:1 on cured and 3.63:1 on latex, so amber link text at
+   body size fails AA on both grounds. Rather than brighten the accent for
+   this one job, the link keeps the full-contrast foreground and takes the
+   accent as an underline, where the 3:1 non-text threshold applies and both
+   grounds pass comfortably.
+
+   This is the better answer regardless of contrast. The brief holds the
+   accent to under 5% of any viewport and reserves it for the single most
+   important action, and a page of amber inline links would spend that
+   budget on navigation.
+   -------------------------------------------------------------------------- */
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  /* Thick enough to read as a deliberate rule in the accent rather than as
+     a default underline that happens to be brown. */
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  /* Descenders cut the line rather than colliding with it. */
+  text-decoration-skip-ink: auto;
+  transition: text-decoration-color var(--dur-1) var(--ease);
+}
+
+/* Tone, never scale or lift. The whole hover vocabulary of this site is one
+   thing changing colour. */
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   5. FOCUS AND SELECTION
+   -------------------------------------------------------------------------- */
+
+/* Visible keyboard focus on everything, per section 8, and it is the accent
+   because focus IS "the current state" the brief reserves the accent for.
+   4.09:1 on cured and 3.63:1 on latex, both clear of the 3:1 needed for a
+   non-text indicator. The offset keeps the ring off the glyphs. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-control);
+}
+
+/* The UA ring is only dropped where a replacement is guaranteed above. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+::selection {
+  background-color: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Anchored navigation must not land content under a fixed header, and must
+   not land it flush against the viewport edge either. */
+:target {
+  scroll-margin-top: var(--s-6);
+}
+
+/* --------------------------------------------------------------------------
+   6. THE ACCENT FILL CONTRACT
+
+   Nothing can sit on a solid `--sheet` fill and reach 4.5:1. The best
+   available foreground is `--cured` at 4.09:1, and the only colour that
+   would clear it is pure black, which the brief bans outright.
+
+   So anything filled with the accent carries LARGE text, where the
+   threshold is 3:1 and 4.09:1 passes with room. WCAG offers two definitions
+   of large: 24px at any weight, or 18.66px bold. The second is taken to
+   mean 700, and Switzer ships here at 600, so this uses the unambiguous
+   one: 24px, whatever the weight.
+
+   `max()` rather than a flat value so a larger inherited size is kept and
+   only an undersized one is corrected. Declared in the base layer rather
+   than inside a button component so that the floor holds for every future
+   thing that takes the accent fill, not just the first one.
+   -------------------------------------------------------------------------- */
+
+[data-on-accent] {
+  background-color: var(--accent);
+  color: var(--on-accent);
+  font-size: max(1.5rem, 1em);
+}
+
+/* --------------------------------------------------------------------------
+   7. REDUCED MOTION
+
+   Section 4 calls this non-negotiable, so it lives in the base layer where
+   nothing later has to remember to opt in. Durations are collapsed rather
+   than set to zero: `0.01ms` still fires transitionend and animationend, so
+   any script that waits on one does not hang.
+
+   Individual stages still gate their own effects on top of this. This is
+   the floor, not the whole answer.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}

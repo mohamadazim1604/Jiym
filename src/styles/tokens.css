@@ -1,0 +1,310 @@
+/* ==========================================================================
+   TOKENS
+   The material system, per BRIEF.md section 3.
+
+   Nothing in this file draws anything. It declares the fonts, then the
+   values every later rule is allowed to reach for. If a component in a
+   later stage needs a colour, a size or a duration that is not in here,
+   that is a signal the system is missing something, not a licence to
+   write a literal.
+
+   Load order: this file first, base.css second, everything else after.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. FONTS
+
+   Self-hosted from Fontshare, downloaded to /public/fonts. Not linked from
+   api.fontshare.com and not from Google Fonts: a webfont fetched from a
+   third-party CDN is a render-blocking request to a host we do not control,
+   on a site whose whole argument is that the person who built it thinks
+   about what happens in production.
+
+   Three faces only, because the brief specifies three: Clash Display 600
+   for headings, Switzer 400 and 600 for everything else. 51.6kB total.
+   There is no italic and no 500, so nothing can quietly synthesise one:
+   `font-synthesis` is switched off in base.css so a missing weight fails
+   visibly rather than being faked by the browser into a smeared oblique.
+   -------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/ClashDisplay-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  /* `swap` rather than `optional`: the headline is the page, and showing a
+     fallback for one paint is better than a first-time visitor never seeing
+     Clash at all. The cost is a reflow when the real face lands. The proper
+     fix is a metric-matched fallback (`size-adjust` / `ascent-override`
+     tuned to the real face) plus a preload in <head>, both of which need the
+     document rebuilt. Logged for stage 9, where the brief puts layout shift. */
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('/fonts/Switzer-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('/fonts/Switzer-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ------------------------------------------------------------------------
+     2. COLOUR, THE NAMED FIVE
+
+     Straight from the brief, unmodified. These are the material: latex is
+     cool and pale with a green cast, smoked sheet is that amber, cured
+     rubber is warm-dark and absorbs light. Everything below is derived from
+     these five and nothing else is invented.
+
+     Note what is absent. There is no #000 and no #FFF, and there is no
+     second accent. One accent means the eye always knows where to go.
+     ------------------------------------------------------------------------ */
+  --cured: #131110; /* warm-dark ground, never pure black */
+  --latex: #e4e5df; /* pale ground, cool, faint green cast, not cream */
+  --sheet: #a8652a; /* the only accent, smoked sheet amber */
+  --graded: #6e7168; /* secondary text, rules, muted state */
+  --ink: #1c1a18; /* body text on latex */
+
+  /* ------------------------------------------------------------------------
+     3. COLOUR, DERIVED
+
+     WHY THIS SECTION EXISTS, measured rather than assumed.
+
+     The brief asks for AA contrast in section 8 and gives a palette in
+     section 3 that cannot deliver it. Of the nine sensible foreground and
+     background pairs, only two clear 4.5:1 for body text:
+
+       latex  on cured     14.86:1   PASS
+       ink    on latex     13.69:1   PASS
+       graded on cured      3.79:1   fail body, passes large
+       graded on latex      3.92:1   fail body, passes large
+       sheet  on cured      4.09:1   fail body, passes large
+       sheet  on latex      3.63:1   fail body, passes large
+       cured  on sheet      4.09:1   fail body, passes large
+
+     So `graded` cannot be used for secondary text at body size, and `sheet`
+     cannot be used for text at body size on either ground. Both are fine at
+     large sizes (3:1) and fine as rules, marks and focus rings (3:1 for
+     non-text).
+
+     Rather than replace the brief's colours, each is lifted by the SMALLEST
+     amount that clears 4.5:1, toward a colour already in the palette. The
+     shift is 11% and 7%, which is below the threshold at which anyone would
+     read them as different colours, and it keeps the accent recognisably
+     the same amber rather than a brighter one invented to pass a test.
+
+     The literal hex is written out rather than a `color-mix()` so the value
+     these ratios were measured against is the value that ships.
+     ------------------------------------------------------------------------ */
+
+  /* `graded` lifted 11% toward `latex`. 4.55:1 on cured. */
+  --graded-read: #7b7e75;
+  /* `graded` lifted 11% toward `ink`. 4.51:1 on latex. */
+  --graded-read-light: #65675f;
+  /* `sheet` lifted 7% toward `latex`. 4.52:1 on cured. */
+  --sheet-read: #ac6e37;
+  /* `sheet` lifted 16% toward `ink`. 4.51:1 on latex. */
+  --sheet-read-light: #925927;
+
+  /* Tonal surfaces. Depth is a shift in tone and a rule, never a shadow, so
+     these are the only "raised" values that exist. Both are the ground mixed
+     a few points toward its opposite: still unmistakably the same surface,
+     just enough separation to read as a step. Deliberately far below the
+     point where they would read as a card sitting on the page. */
+  --cured-lift: #1d1c1a; /* cured + 5% latex */
+  --cured-lift-2: #282625; /* cured + 10% latex */
+  --latex-lift: #dadbd5; /* latex + 5% ink */
+  --latex-lift-2: #d0d1cb; /* latex + 10% ink */
+
+  /* Rules. The other half of the depth system. Two weights on each ground:
+     a hairline that separates without announcing itself, and a heavier one
+     for a real structural division. */
+  --rule-dark: #302f2d; /* cured + 14% latex */
+  --rule-dark-soft: #242221; /* cured + 8% latex */
+  --rule-light: #c8c9c3; /* latex + 14% ink */
+  --rule-light-soft: #d4d5cf; /* latex + 8% ink */
+
+  /* ------------------------------------------------------------------------
+     4. COLOUR, SEMANTIC
+
+     What components actually reach for. The dark ground is the default
+     because the brief's direction is cured rubber: dense, matte, absorbing
+     light. `[data-ground="light"]` flips the whole set to the latex surface
+     in one place, which is how a section inverts without any component
+     carrying a light-mode branch of its own.
+     ------------------------------------------------------------------------ */
+  --ground: var(--cured);
+  --ground-lift: var(--cured-lift);
+  --ground-lift-2: var(--cured-lift-2);
+  --fg: var(--latex); /* primary text, 14.86:1 */
+  --fg-2: var(--graded-read); /* secondary text at body size, 4.55:1 */
+  --fg-muted: var(--graded); /* large text and marks only, 3.79:1 */
+  --accent: var(--sheet); /* fills, rules, marks, large text */
+  --accent-text: var(--sheet-read); /* the accent when it must carry body copy */
+  --rule: var(--rule-dark);
+  --rule-soft: var(--rule-dark-soft);
+  /* What sits on top of an accent fill. 4.09:1, which is AA for LARGE text
+     only, so anything filled with the accent has a minimum type size. That
+     rule is enforced in base.css rather than left to memory. */
+  --on-accent: var(--cured);
+
+  /* ------------------------------------------------------------------------
+     5. TYPE
+
+     Two families, no third. The mono stack is for actual code inside prose
+     and nothing else: the brief bans a monospace face used for small data
+     labels, which is what the previous version of this site did 75 times.
+     ------------------------------------------------------------------------ */
+  --font-display: 'Clash Display', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Switzer', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-code: ui-monospace, 'Cascadia Code', 'SF Mono', monospace;
+
+  /* THE SCALE.
+
+     Ratio 1.25 for interface text, held exactly, in fixed rem. Fluid
+     `clamp()` on these steps was rejected: the brief specifies the ratio,
+     and a clamped step only lands on it at one viewport width. Interface
+     text does not need to grow with the window anyway, it needs to stay
+     the size at which it is comfortable to read.
+
+     The display end breaks the ratio on purpose. 1.25 from --t-h3 would
+     give 2.44rem for --t-h2 and 3.05rem for --t-h1, which is "merely
+     bigger". The brief asks for genuinely large, so the top two steps are
+     hand-tuned and fluid, and --t-h1 lands at 136px on a wide screen. */
+  --t-caption: 0.8rem; /* 12.8px  1.25^-1 */
+  --t-body: 1rem; /* 16px */
+  --t-lead: 1.25rem; /* 20px    1.25^1 */
+  --t-h4: 1.5625rem; /* 25px    1.25^2 */
+  --t-h3: 1.953rem; /* 31.25px 1.25^3 */
+  --t-h2: clamp(2.5rem, 1.6rem + 3.6vw, 4rem); /* 40px to 64px, hand-tuned */
+  --t-h1: clamp(3rem, 1.1rem + 8.1vw, 8.5rem); /* 48px to 136px, hand-tuned */
+
+  /* Line height moves inversely to size, per the brief. Body is generous
+     because the measure is long; the display line is set below 1 because at
+     136px the space between two lines is otherwise a hole in the page. */
+  --lh-body: 1.6;
+  --lh-lead: 1.5;
+  --lh-h4: 1.35;
+  --lh-h3: 1.25;
+  --lh-h2: 1.08;
+  --lh-h1: 0.95;
+
+  /* Tracking. Negative only. There is no positive tracking token anywhere in
+     this system, which is deliberate and structural: the tracked-out
+     uppercase label is on the banned list, and the cleanest way to keep it
+     off the page is to make the value it needs unavailable. */
+  --track-display: -0.03em; /* Clash at display sizes, per the brief */
+  --track-heading: -0.02em;
+  --track-body: 0em;
+
+  /* ------------------------------------------------------------------------
+     6. SPACE
+
+     8px base, and it stays on it. Every value below is a whole multiple of
+     8, expressed in rem so it scales with a user's root font size instead
+     of ignoring it.
+
+     `--section` and `--gutter` step at breakpoints rather than using
+     `clamp()`, for the same reason the interface type scale is fixed: a
+     clamped value is on the 8px grid at exactly two viewport widths and off
+     it everywhere in between. "Stay on it" is not a suggestion that can
+     survive fluid spacing.
+     ------------------------------------------------------------------------ */
+  --s-1: 0.5rem; /* 8 */
+  --s-2: 1rem; /* 16 */
+  --s-3: 1.5rem; /* 24 */
+  --s-4: 2rem; /* 32 */
+  --s-5: 3rem; /* 48 */
+  --s-6: 4rem; /* 64 */
+  --s-7: 6rem; /* 96 */
+  --s-8: 8rem; /* 128 */
+  --s-9: 12rem; /* 192 */
+  --s-10: 16rem; /* 256 */
+
+  --gutter: var(--s-3); /* 24 */
+  --section: var(--s-7); /* 96 */
+
+  /* ------------------------------------------------------------------------
+     7. SHAPE
+
+     Two values, and the gap between them is the point. One radius on
+     everything is the tell the brief names; hierarchy means the radius
+     tells you what a thing IS. If it has a corner radius you can press it.
+     ------------------------------------------------------------------------ */
+  --radius-control: 4px; /* anything interactive */
+  --radius-surface: 0; /* content, media, panels: square */
+
+  /* ------------------------------------------------------------------------
+     8. MEASURE AND LAYOUT
+
+     Left-anchored and asymmetric is a stage 3 decision about structure, so
+     there is no centring token here and no `margin-inline: auto`. What the
+     token layer owes it is a measure: the brief caps body line length under
+     75 characters, and 68 leaves headroom for the wider glyphs in Switzer.
+     ------------------------------------------------------------------------ */
+  --measure: 68ch;
+  --measure-tight: 54ch;
+  --page-max: 90rem; /* 1440px */
+
+  /* ------------------------------------------------------------------------
+     9. MOTION
+
+     Declared here, used from stage 5 onward. One easing curve for the whole
+     site: mechanical, decisive, no overshoot. Nothing in this system is
+     allowed to bounce, so there is no spring token and no elastic curve to
+     reach for.
+     ------------------------------------------------------------------------ */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-1: 400ms;
+  --dur-2: 550ms;
+  --dur-3: 700ms;
+}
+
+/* --------------------------------------------------------------------------
+   THE LIGHT GROUND
+
+   Not a theme and not a dark-mode branch. Both surfaces are part of one
+   material system, and a section inverts by declaring which one it is
+   standing on. Every semantic token is remapped, so a component written
+   against `--fg` and `--rule` is correct on both without knowing which it
+   is on.
+   -------------------------------------------------------------------------- */
+[data-ground='light'] {
+  --ground: var(--latex);
+  --ground-lift: var(--latex-lift);
+  --ground-lift-2: var(--latex-lift-2);
+  --fg: var(--ink); /* 13.69:1 */
+  --fg-2: var(--graded-read-light); /* 4.51:1 */
+  --fg-muted: var(--graded); /* 3.92:1, large text and marks only */
+  --accent: var(--sheet);
+  --accent-text: var(--sheet-read-light); /* 4.51:1 */
+  --rule: var(--rule-light);
+  --rule-soft: var(--rule-light-soft);
+  --on-accent: var(--cured);
+}
+
+/* Wider viewports get more room, in whole 8px steps. Two breakpoints, no
+   more: this is a spacing rhythm, not a grid framework. */
+@media (min-width: 48rem) {
+  :root {
+    --gutter: var(--s-5); /* 48 */
+    --section: var(--s-8); /* 128 */
+  }
+}
+
+@media (min-width: 75rem) {
+  :root {
+    --gutter: var(--s-6); /* 64 */
+    --section: var(--s-9); /* 192 */
+  }
+}
